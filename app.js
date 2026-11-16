@@ -331,8 +331,9 @@ async function loadDailySummary() {
   document.getElementById('btn-pdf').style.display = 'none';
 
   try {
-    const start = dateVal + 'T00:00:00+07:00';
-    const end   = dateVal + 'T23:59:59+07:00';
+    // ใช้ UTC offset +07:00 ของภูเก็ต
+    const start = encodeURIComponent(dateVal + 'T00:00:00+07:00');
+    const end   = encodeURIComponent(dateVal + 'T23:59:59+07:00');
     const rows  = await supaFetch(
       `sensor_readings?station_id=eq.${STATION_ID}&created_at=gte.${start}&created_at=lte.${end}&order=created_at.asc&select=*`
     );
@@ -441,7 +442,7 @@ async function loadDailySummary() {
   } catch (e) {
     document.getElementById('daily-loading').style.display = 'none';
     document.getElementById('daily-empty').style.display = 'block';
-    document.getElementById('daily-empty').textContent = '❌ โหลดข้อมูลไม่สำเร็จ';
+    document.getElementById('daily-empty').textContent = `❌ โหลดข้อมูลไม่สำเร็จ: ${e.message}`;
   }
 }
 
@@ -585,8 +586,8 @@ async function loadCompare() {
 
   try {
     // Load station data
-    const start = dateVal + 'T00:00:00+07:00';
-    const end   = dateVal + 'T23:59:59+07:00';
+    const start = encodeURIComponent(dateVal + 'T00:00:00+07:00');
+    const end   = encodeURIComponent(dateVal + 'T23:59:59+07:00');
     const stationRows = await supaFetch(
       `sensor_readings?station_id=eq.${STATION_ID}&created_at=gte.${start}&created_at=lte.${end}&order=created_at.asc&select=created_at,temperature,humidity`
     );
