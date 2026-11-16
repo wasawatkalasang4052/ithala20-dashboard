@@ -73,12 +73,13 @@ body.admin-mode { background: var(--a-bg); color: var(--a-fg); }
 #mode-select {
   position: fixed; inset: 0; z-index: 9999;
   background: linear-gradient(135deg, #080d14 0%, #0d1f35 50%, #102a44 100%);
-  display: flex; flex-direction: column;
+  display: none; flex-direction: column;
   align-items: center; justify-content: center;
   gap: 0; padding: 32px 24px;
   transition: opacity .4s;
 }
-#mode-select.hidden { opacity:0; pointer-events:none; }
+#mode-select.visible { display: flex; }
+#mode-select.hidden { display: none; }
 
 .ms-logo {
   font-family: 'Space Grotesk', sans-serif;
@@ -751,7 +752,7 @@ body.admin-mode #toast { background: var(--a-accent); color: var(--a-bg); }
     <div class="g-hdr-right">
       <div class="g-time" id="gTime">--:--</div>
       <button class="g-lang" onclick="toggleLang()" id="gLangBtn">EN</button>
-      <button class="g-switch-btn" onclick="showModeSelect()">⚙ Admin</button>
+      <button class="g-switch-btn" onclick="window.location.hash='admin';enterMode('admin')">⚙ Admin</button>
     </div>
   </div>
 
@@ -909,7 +910,7 @@ body.admin-mode #toast { background: var(--a-accent); color: var(--a-bg); }
       <div class="a-topbar-title" id="aPageTitle">Overview</div>
       <div class="a-topbar-right">
         <button class="a-lang-btn" onclick="toggleLang()" id="aLangBtn">EN</button>
-        <button class="a-switch-btn" onclick="showModeSelect()">🌤 Guest View</button>
+        <button class="a-switch-btn" onclick="enterMode('guest')">🌤 Guest View</button>
       </div>
     </div>
 
@@ -1256,6 +1257,8 @@ let live = {...BASE};
 let history24 = [], history7d = [];
 let lang = 'th';
 let secSince = 0;
+// URL-based routing: no hash → guest, #admin → admin
+const isAdmin = window.location.hash === '#admin';
 let currentMode = '';
 let overviewChart, mainChart;
 
@@ -1264,12 +1267,17 @@ let overviewChart, mainChart;
 // ═══════════════════════════════════════════
 function enterMode(mode) {
   currentMode = mode;
+  document.getElementById('mode-select').classList.remove('visible');
   document.getElementById('mode-select').classList.add('hidden');
   if (mode === 'guest') {
     document.body.className = 'guest-mode';
+    // Update URL to root (no hash) so QR always points to guest
+    if (window.location.hash !== '') history.replaceState(null, '', window.location.pathname);
     initQR();
   } else {
     document.body.className = 'admin-mode';
+    // Set hash so admin URL is bookmarkable
+    history.replaceState(null, '', '#admin');
     if (!window._overviewChartInited) {
       setTimeout(() => { buildOverviewChart(); window._overviewChartInited = true; }, 100);
     }
@@ -1277,8 +1285,19 @@ function enterMode(mode) {
 }
 
 function showModeSelect() {
-  document.getElementById('mode-select').classList.remove('hidden');
+  const ms = document.getElementById('mode-select');
+  ms.classList.remove('hidden');
+  ms.classList.add('visible');
 }
+
+// Auto-route on load: skip mode-select entirely
+window.addEventListener('DOMContentLoaded', () => {
+  if (isAdmin) {
+    enterMode('admin');
+  } else {
+    enterMode('guest');
+  }
+});
 
 // ═══════════════════════════════════════════
 // SIDEBAR NAV (admin)
