@@ -845,14 +845,82 @@ async function loadCompare() {
 // ══════════════════════════════════════════
 //  TELEGRAM ALERTS (Activity-based)
 // ══════════════════════════════════════════
+// ── Per-user Telegram Chat ID ──
+const TG_CHATID_KEY = 'ithala20-tg-chatid';
+
+function getEffectiveChatId() {
+  try {
+    const stored = localStorage.getItem(TG_CHATID_KEY);
+    return (stored && stored.trim()) ? stored.trim() : TG_CHAT_ID;
+  } catch(e) { return TG_CHAT_ID; }
+}
+
+function saveChatId() {
+  const input = document.getElementById('input-tg-chatid');
+  const val = input ? input.value.trim() : '';
+  if (!val) { showToast('กรุณากรอก Chat ID ก่อน', 'warn'); return; }
+  if (!/^\-?\d+$/.test(val)) { showToast('Chat ID ต้องเป็นตัวเลขเท่านั้น', 'warn'); return; }
+  try {
+    localStorage.setItem(TG_CHATID_KEY, val);
+    const hint = document.getElementById('tg-setup-hint');
+    if (hint) hint.style.display = 'block';
+    const statusEl = document.getElementById('tg-id-status');
+    if (statusEl) { statusEl.textContent = '✓'; statusEl.style.color = '#34d399'; }
+    showToast('บันทึก Chat ID แล้ว ✓', 'ok');
+  } catch(e) { showToast('ไม่สามารถบันทึกได้', 'warn'); }
+}
+
+function onChatIdInput() {
+  const input = document.getElementById('input-tg-chatid');
+  const statusEl = document.getElementById('tg-id-status');
+  if (!statusEl || !input) return;
+  if (input.value.trim() && /^\-?\d+$/.test(input.value.trim())) {
+    statusEl.textContent = '✓'; statusEl.style.color = '#34d399';
+  } else {
+    statusEl.textContent = input.value.trim() ? '✗' : '';
+    statusEl.style.color = '#f87171';
+  }
+}
+
+function loadSavedChatId() {
+  try {
+    const stored = localStorage.getItem(TG_CHATID_KEY);
+    if (stored && stored.trim()) {
+      const input = document.getElementById('input-tg-chatid');
+      if (input) input.value = stored.trim();
+      const hint = document.getElementById('tg-setup-hint');
+      if (hint) hint.style.display = 'block';
+      const statusEl = document.getElementById('tg-id-status');
+      if (statusEl) { statusEl.textContent = '✓'; statusEl.style.color = '#34d399'; }
+    }
+  } catch(e) {}
+}
+
 async function sendTelegram(msg) {
+  const chatId = getEffectiveChatId();
   try {
     await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: TG_CHAT_ID, text: msg, parse_mode: 'HTML' })
+      body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'HTML' })
     });
   } catch (e) { console.error('Telegram error:', e); }
+}
+
+function showToast(msg, type = 'ok') {
+  let toast = document.getElementById('ithala-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'ithala-toast';
+    toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:12px;font-size:.85rem;font-weight:600;z-index:9999;transition:opacity .3s;pointer-events:none;white-space:nowrap';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.background = type === 'ok' ? '#34d399' : '#f97316';
+  toast.style.color = type === 'ok' ? '#022c22' : '#fff';
+  toast.style.opacity = '1';
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 2500);
 }
 
 function addAlertHistory(icon, name, desc, ok) {
@@ -1218,6 +1286,7 @@ async function init() {
   initMap();
   initRipple();
   checkWebPushStatus();
+  loadSavedChatId();
   await loadRealtime();
   loadHeatmap();
 
@@ -1231,29 +1300,31 @@ async function init() {
 
 const GUIDES = {
   telegram: {
-    title: '✈️ วิธีตั้งค่า Telegram Bot',
+    title: '✈️ วิธีรับแจ้งเตือนบน Telegram ของคุณ',
     steps: [
       {
-        title: 'ติดตั้ง Telegram',
-        desc: 'ดาวน์โหลด Telegram บนมือถือหรือคอม แล้วสมัครบัญชี'
+        title: '1. หา Chat ID ของคุณ',
+        desc: 'เปิด Telegram แล้วค้นหา <b>@userinfobot</b> กด Start — Bot จะตอบกลับด้วย Chat ID ของคุณทันที (เป็นตัวเลข)',
+        link: 'https://t.me/userinfobot',
+        linkLabel: '→ เปิด @userinfobot'
       },
       {
-        title: 'ค้นหา Bot ของสถานี',
-        desc: 'เปิด Telegram แล้วค้นหา <b>@ITHALA20Bot</b> หรือกดลิงก์ด้านล่าง',
+        title: '2. เริ่ม Bot ของสถานี',
+        desc: 'ค้นหา <b>@ITHALA20Bot</b> แล้วกด <b>START</b> เพื่อให้ Bot สามารถส่งข้อความหาคุณได้',
         link: 'https://t.me/ITHALA20Bot',
-        linkLabel: '→ เปิด Telegram Bot'
-      },
-      {
-        title: 'กด Start',
-        desc: 'กดปุ่ม <b>START</b> เพื่อเริ่มรับการแจ้งเตือน ระบบจะส่ง Chat ID ให้อัตโนมัติ',
+        linkLabel: '→ เปิด @ITHALA20Bot',
         code: '/start'
       },
       {
-        title: 'ทดสอบการแจ้งเตือน',
-        desc: 'กลับมาที่ dashboard แล้วกดปุ่ม <b>"ทดสอบ Telegram"</b> เพื่อยืนยันการเชื่อมต่อ'
+        title: '3. ใส่ Chat ID ในช่องด้านบน',
+        desc: 'นำตัวเลข Chat ID ที่ได้จาก @userinfobot มาใส่ในช่อง <b>"ตั้งค่า Telegram"</b> แล้วกด <b>💾 บันทึก</b>'
+      },
+      {
+        title: '4. ทดสอบการแจ้งเตือน',
+        desc: 'ไปที่แท็บ <b>แจ้งเตือน</b> แล้วกดปุ่ม <b>"ทดสอบ Telegram"</b> ใต้กิจกรรมใดก็ได้ — ถ้าได้รับข้อความแสดงว่าตั้งค่าสำเร็จ'
       }
     ],
-    tip: '💡 Bot นี้เชื่อมต่อกับสถานีโดยตรง — ทุกครั้งที่สภาพอากาศเหมาะสมกับกิจกรรมที่เลือก จะได้รับข้อความทันที'
+    tip: '💡 แต่ละคนใช้ Chat ID ของตัวเอง — ตัวเลขนี้เก็บในเครื่องคุณเท่านั้น ไม่แชร์กับคนอื่น'
   },
 
   webpush: {

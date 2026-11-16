@@ -250,6 +250,12 @@ footer{text-align:center;padding:24px;color:#1e3a5f;font-size:.75rem;border-top:
 .light-mode .preset-btn:hover{background:#e8f0fb;border-color:#bfdbfe;color:#334155}
 .light-mode .preset-btn.active{background:rgba(14,165,233,.12);border-color:#0ea5e9;color:#0ea5e9}
 
+/* ── Telegram Chat ID Setup ── */
+.tg-setup-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.tg-id-wrap{position:relative;flex:1;min-width:200px;display:flex;align-items:center}
+.tg-id-icon{position:absolute;left:11px;font-size:1rem;pointer-events:none;z-index:1}
+.tg-id-status{position:absolute;right:12px;font-size:.85rem;font-weight:700}
+
 /* ── Notify Channel Cards ── */
 .notify-channels{display:flex;flex-direction:column;gap:12px}
 .notify-channel-card{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#091020 0%,#0d1526 100%);border:1px solid #1e3a5f;border-radius:14px;padding:16px 18px;transition:all .22s;flex-wrap:wrap}
