@@ -16,11 +16,85 @@ const TG_CHAT_ID = '5058237954';
 // OpenWeatherMap API Key (free tier)
 const OWM_API_KEY = 'demo'; // ใส่ API key จริงที่นี่
 
-// Alert cooldown tracking (ms)
-const alertLastSent = { temp: 0, rain: 0, hum: 0 };
+// Activity Alert: cooldown tracking per activity id
+const alertLastSent = {};
+
+// Activity definitions — each has: id, icon, name, check(latest) → {ok, desc}
+const ACTIVITIES = [
+  {
+    id: 'run',
+    icon: '🏃',
+    name: 'วิ่ง / ออกกำลังกาย',
+    check(d) {
+      const noRain = d.rain_raw >= 2000;
+      const coolTemp = d.temperature < 32;
+      const ok = noRain && coolTemp;
+      return { ok, desc: `${d.temperature?.toFixed(1)}°C · ${noRain?'ไม่มีฝน':'มีฝน'}` };
+    }
+  },
+  {
+    id: 'beach',
+    icon: '🏖️',
+    name: 'ไปหาดทราย',
+    check(d) {
+      const noRain = d.rain_raw >= 2000;
+      const goodTemp = d.temperature >= 27 && d.temperature <= 36;
+      const goodLight = d.light_lux >= 5000;
+      const ok = noRain && goodTemp && goodLight;
+      return { ok, desc: `${d.temperature?.toFixed(1)}°C · แสง ${Math.round(d.light_lux)} lux · ${noRain?'ไม่มีฝน':'มีฝน'}` };
+    }
+  },
+  {
+    id: 'bike',
+    icon: '🚴',
+    name: 'ปั่นจักรยาน',
+    check(d) {
+      const noRain = d.rain_raw >= 2000;
+      const coolTemp = d.temperature < 33;
+      const ok = noRain && coolTemp;
+      return { ok, desc: `${d.temperature?.toFixed(1)}°C · ${noRain?'ไม่มีฝน':'มีฝน'}` };
+    }
+  },
+  {
+    id: 'chill',
+    icon: '☕',
+    name: 'นั่งชิลนอกบ้าน',
+    check(d) {
+      const coolTemp = d.temperature < 30;
+      const dryHum   = d.humidity < 80;
+      const ok = coolTemp && dryHum;
+      return { ok, desc: `${d.temperature?.toFixed(1)}°C · ชื้น ${d.humidity?.toFixed(0)}%` };
+    }
+  },
+  {
+    id: 'rain',
+    icon: '⛈️',
+    name: 'แจ้งเตือนฝนมา',
+    check(d) {
+      const ok = d.rain_raw < 2000;
+      return { ok, desc: `Rain raw ${d.rain_raw}` };
+    }
+  },
+  {
+    id: 'golden',
+    icon: '🌅',
+    name: 'แสงพระอาทิตย์สวย',
+    check(d) {
+      const noRain    = d.rain_raw >= 2000;
+      const goldenLux = d.light_lux >= 1000 && d.light_lux <= 8000;
+      const ok = noRain && goldenLux;
+      return { ok, desc: `แสง ${Math.round(d.light_lux)} lux · ${noRain?'ไม่มีฝน':'มีฝน'}` };
+    }
+  },
+];
 
 // Charts instances
 const charts = {};
+
+// ── Activity toggle ──
+function toggleActivity(card) {
+  card.classList.toggle('selected');
+}
 
 // ── Preset buttons + slider sync ──
 document.addEventListener('click', e => {
@@ -67,9 +141,9 @@ function updateSliderFill(slider) {
   slider.style.background = `linear-gradient(90deg,#0ea5e9 ${pct}%,#1e3a5f ${pct}%)`;
 }
 
-// init slider fills on load
+// init slider fills on load (only cooldown slider remains in activity mode)
 function initSliders() {
-  ['alert-temp-slider','alert-rain-slider','alert-hum-slider','alert-cd-slider'].forEach(id => {
+  ['alert-cd-slider'].forEach(id => {
     const el = document.getElementById(id);
     if (el) updateSliderFill(el);
   });
@@ -708,30 +782,8 @@ async function loadCompare() {
 }
 
 // ══════════════════════════════════════════
-//  TELEGRAM ALERTS
+//  TELEGRAM ALERTS (Activity-based)
 // ══════════════════════════════════════════
-function getAlertSettings() {
-  return {
-    tempOn:    document.getElementById('alert-temp-on')?.checked ?? true,
-    tempVal:   parseFloat(document.getElementById('alert-temp-val')?.value ?? 35),
-    rainOn:    document.getElementById('alert-rain-on')?.checked  ?? true,
-    rainVal:   parseInt(document.getElementById('alert-rain-val')?.value  ?? 2000),
-    humOn:     document.getElementById('alert-hum-on')?.checked   ?? false,
-    humVal:    parseFloat(document.getElementById('alert-hum-val')?.value ?? 95),
-    cooldown:  parseInt(document.getElementById('alert-cooldown')?.value  ?? 30) * 60000
-  };
-}
-
-function saveAlertSettings() {
-  const r = document.getElementById('alert-result');
-  r.style.display = 'block';
-  r.style.background = 'rgba(52,211,153,.1)';
-  r.style.border = '1px solid rgba(52,211,153,.2)';
-  r.style.color  = '#34d399';
-  r.textContent  = '✅ บันทึกการตั้งค่าแล้ว';
-  setTimeout(() => r.style.display = 'none', 2000);
-}
-
 async function sendTelegram(msg) {
   try {
     await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
@@ -742,7 +794,7 @@ async function sendTelegram(msg) {
   } catch (e) { console.error('Telegram error:', e); }
 }
 
-function addAlertHistory(type, value, ok) {
+function addAlertHistory(icon, name, desc, ok) {
   const tbody = document.getElementById('alert-history-body');
   const wrap  = document.getElementById('alert-history-wrap');
   const empty = document.getElementById('alert-history-empty');
@@ -750,33 +802,51 @@ function addAlertHistory(type, value, ok) {
   wrap.style.display  = '';
   const tr = document.createElement('tr');
   const now = new Date().toLocaleTimeString('th-TH', { timeZone:'Asia/Bangkok' });
-  tr.innerHTML = `<td>${now}</td><td>${type}</td><td>${value}</td><td><span class="badge ${ok?'badge-ok':'badge-err'}">${ok?'ส่งแล้ว':'ส่งไม่ได้'}</span></td>`;
+  tr.innerHTML = `<td>${now}</td><td>${icon} ${name}</td><td>${desc}</td><td><span class="badge ${ok?'badge-ok':'badge-err'}">${ok?'ส่งแล้ว':'ส่งไม่ได้'}</span></td>`;
   tbody.prepend(tr);
 }
 
+// Update activity status badges (called after each realtime load)
+function updateActivityStatus(latest) {
+  ACTIVITIES.forEach(act => {
+    const el = document.getElementById(`act-status-${act.id}`);
+    if (!el) return;
+    const { ok, desc } = act.check(latest);
+    el.textContent  = ok ? '✅ เหมาะสม' : '⛔ ยังไม่เหมาะ';
+    el.className    = 'activity-status ' + (ok ? 'ok' : 'bad');
+  });
+}
+
 async function checkAlerts(latest) {
-  const cfg = getAlertSettings();
+  const cooldownMs = parseInt(document.getElementById('alert-cooldown')?.value ?? 30) * 60000;
   const now = Date.now();
+  const time = new Date(latest.created_at).toLocaleString('th-TH', { timeZone:'Asia/Bangkok' });
 
-  if (cfg.tempOn && latest.temperature >= cfg.tempVal && now - alertLastSent.temp > cfg.cooldown) {
-    alertLastSent.temp = now;
-    const msg = `🌡️ <b>ITHALA20 แจ้งเตือน!</b>\n\nอุณหภูมิสูงเกิน ${cfg.tempVal}°C\nค่าที่วัดได้: <b>${latest.temperature?.toFixed(1)}°C</b>\nสถานี: ITHALA20-PHUKET-01\nเวลา: ${new Date(latest.created_at).toLocaleString('th-TH',{timeZone:'Asia/Bangkok'})}`;
-    await sendTelegram(msg);
-    addAlertHistory('🌡️ อุณหภูมิสูง', `${latest.temperature?.toFixed(1)}°C`, true);
-  }
+  // Update status badges regardless
+  updateActivityStatus(latest);
 
-  if (cfg.rainOn && latest.rain_raw <= cfg.rainVal && now - alertLastSent.rain > cfg.cooldown) {
-    alertLastSent.rain = now;
-    const msg = `🌧️ <b>ITHALA20 ตรวจพบฝน!</b>\n\nสัญญาณฝน raw: <b>${latest.rain_raw}</b>\nสถานี: ITHALA20-PHUKET-01\nเวลา: ${new Date(latest.created_at).toLocaleString('th-TH',{timeZone:'Asia/Bangkok'})}`;
-    await sendTelegram(msg);
-    addAlertHistory('🌧️ ตรวจพบฝน', `rain raw ${latest.rain_raw}`, true);
-  }
+  // Find which activities are selected
+  const selectedCards = document.querySelectorAll('.activity-card.selected');
+  const selectedIds   = new Set([...selectedCards].map(c => c.dataset.id));
 
-  if (cfg.humOn && latest.humidity >= cfg.humVal && now - alertLastSent.hum > cfg.cooldown) {
-    alertLastSent.hum = now;
-    const msg = `💧 <b>ITHALA20 ความชื้นสูง!</b>\n\nความชื้นสูงเกิน ${cfg.humVal}%\nค่าที่วัดได้: <b>${latest.humidity?.toFixed(1)}%</b>\nสถานี: ITHALA20-PHUKET-01\nเวลา: ${new Date(latest.created_at).toLocaleString('th-TH',{timeZone:'Asia/Bangkok'})}`;
+  for (const act of ACTIVITIES) {
+    if (!selectedIds.has(act.id)) continue;
+    const { ok, desc } = act.check(latest);
+    if (!ok) continue;
+
+    // Check cooldown
+    if (!alertLastSent[act.id]) alertLastSent[act.id] = 0;
+    if (now - alertLastSent[act.id] < cooldownMs) continue;
+
+    alertLastSent[act.id] = now;
+    const msg =
+      `${act.icon} <b>ITHALA20 — ${act.name}</b>\n\n` +
+      `✅ อากาศเหมาะสมกับ "${act.name}" แล้ว!\n` +
+      `📊 ${desc}\n` +
+      `🏠 สถานี: ITHALA20-PHUKET-01\n` +
+      `🕐 เวลา: ${time}`;
     await sendTelegram(msg);
-    addAlertHistory('💧 ความชื้นสูง', `${latest.humidity?.toFixed(1)}%`, true);
+    addAlertHistory(act.icon, act.name, desc, true);
   }
 }
 
@@ -788,12 +858,17 @@ async function testTelegram() {
   r.style.color  = '#38bdf8';
   r.textContent  = '📨 กำลังส่งข้อความทดสอบ...';
   try {
-    await sendTelegram(`✅ <b>ITHALA20 ทดสอบการแจ้งเตือน</b>\n\nระบบแจ้งเตือนทำงานปกติ!\nสถานี: ITHALA20-PHUKET-01\nเวลา: ${new Date().toLocaleString('th-TH',{timeZone:'Asia/Bangkok'})}`);
+    await sendTelegram(
+      `✅ <b>ITHALA20 ทดสอบการแจ้งเตือน</b>\n\n` +
+      `ระบบแจ้งเตือนกิจกรรมทำงานปกติ!\n` +
+      `🏃 วิ่ง / 🏖️ หาด / 🚴 ปั่น / ☕ ชิล / ⛈️ ฝน / 🌅 แสงสวย\n` +
+      `🕐 เวลา: ${new Date().toLocaleString('th-TH',{timeZone:'Asia/Bangkok'})}`
+    );
     r.style.background = 'rgba(52,211,153,.1)';
     r.style.border = '1px solid rgba(52,211,153,.2)';
     r.style.color  = '#34d399';
     r.textContent  = '✅ ส่งสำเร็จ! เช็ค Telegram ได้เลย';
-    addAlertHistory('🧪 ทดสอบ', '-', true);
+    addAlertHistory('🧪', 'ทดสอบ', '-', true);
   } catch (e) {
     r.style.background = 'rgba(248,113,113,.1)';
     r.style.border = '1px solid rgba(248,113,113,.2)';

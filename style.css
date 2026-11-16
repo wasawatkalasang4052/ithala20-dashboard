@@ -94,17 +94,33 @@ canvas{max-height:260px}
 .heatmap-legend{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:.73rem;color:#4a7fa5}
 .legend-bar{flex:1;height:8px;border-radius:4px;background:linear-gradient(90deg,#1e3a5f,#0ea5e9,#f59e0b,#ef4444)}
 
-/* ── Alert Settings ── */
-.alert-setup{margin-top:4px}
-.alert-info{margin-bottom:20px;display:flex;align-items:center;flex-wrap:wrap;gap:8px}
-.alert-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+/* ── Activity Alert Grid ── */
+.activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:4px}
+.activity-card{background:#091020;border:2px solid #1e3a5f;border-radius:16px;padding:18px 14px;text-align:center;cursor:pointer;transition:all .22s;user-select:none;position:relative;overflow:hidden}
+.activity-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(56,189,248,.08),transparent 70%);opacity:0;transition:opacity .22s}
+.activity-card:hover{border-color:#38bdf844;transform:translateY(-3px);box-shadow:0 6px 20px rgba(56,189,248,.1)}
+.activity-card:hover::before{opacity:1}
+.activity-card.selected{border-color:#38bdf8;background:rgba(56,189,248,.07);box-shadow:0 0 0 3px rgba(56,189,248,.12)}
+.activity-card.selected::before{opacity:1}
+.activity-card.selected .activity-name{color:#38bdf8}
+.activity-icon{font-size:2.2rem;margin-bottom:8px;line-height:1}
+.activity-name{font-size:.85rem;font-weight:600;color:#94a3b8;margin-bottom:6px}
+.activity-cond{font-size:.7rem;color:#334155;line-height:1.5;margin-bottom:10px}
+.activity-status{font-size:.72rem;font-weight:600;padding:3px 8px;border-radius:20px;display:inline-block;background:#0d1526;color:#334155}
+.activity-status.ok{background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.25)}
+.activity-status.bad{background:rgba(248,113,113,.1);color:#f87171;border:1px solid rgba(248,113,113,.2)}
+.activity-status.pending{background:rgba(56,189,248,.1);color:#38bdf8;border:1px solid rgba(56,189,248,.2)}
+/* checkmark overlay when selected */
+.activity-card.selected::after{content:'✓';position:absolute;top:8px;right:10px;font-size:.75rem;color:#38bdf8;font-weight:700}
+
+/* ── Activity Footer ── */
+.activity-footer{margin-top:20px;padding:16px;background:#091020;border:1px solid #1e3a5f;border-radius:12px}
+.cooldown-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+
+/* ── Alert Settings (legacy kept for toggle) ── */
 .alert-card{background:#091020;border:1px solid #1e3a5f;border-radius:12px;padding:16px}
 .alert-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:.88rem;color:#94a3b8;font-weight:500}
 .alert-card-body label{display:block;font-size:.75rem;color:#4a7fa5;margin-bottom:8px}
-.input-unit{display:flex;align-items:center;gap:8px}
-.input-unit input{background:#0a0f1e;border:1px solid #1e3a5f;border-radius:8px;color:#e2e8f0;padding:7px 12px;font-size:.9rem;width:100px;font-family:'Inter',sans-serif}
-.input-unit input:focus{outline:none;border-color:#38bdf8}
-.input-unit span{font-size:.8rem;color:#4a7fa5}
 
 /* ── Toggle Switch ── */
 .toggle{position:relative;display:inline-block;width:40px;height:22px}
