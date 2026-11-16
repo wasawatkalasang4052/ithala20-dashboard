@@ -119,8 +119,11 @@
       <div class="section-header">
         <h2>📅 สรุปข้อมูลรายวัน</h2>
         <div class="controls-row">
-          <input type="date" id="daily-date" onchange="loadDailySummary()">
-          <button class="btn-primary" onclick="loadDailySummary()">🔍 โหลด</button>
+          <div class="date-wrap">
+            <span class="date-icon">📅</span>
+            <input type="date" id="daily-date" onchange="loadDailySummary()">
+          </div>
+          <button class="btn-primary" onclick="loadDailySummary()">โหลด</button>
           <button class="btn-success" onclick="exportPDF()" id="btn-pdf" style="display:none">📄 Export PDF</button>
           <button class="btn-outline" onclick="exportDailyCSV()" id="btn-export-daily" style="display:none">⬇️ CSV</button>
         </div>
@@ -177,8 +180,11 @@
       <div class="section-header">
         <h2>🌍 เปรียบเทียบกับ OpenWeatherMap</h2>
         <div class="controls-row">
-          <input type="date" id="compare-date" onchange="loadCompare()">
-          <button class="btn-primary" onclick="loadCompare()">🔍 โหลด</button>
+          <div class="date-wrap">
+            <span class="date-icon">📅</span>
+            <input type="date" id="compare-date" onchange="loadCompare()">
+          </div>
+          <button class="btn-primary" onclick="loadCompare()">โหลด</button>
         </div>
       </div>
 
