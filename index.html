@@ -253,6 +253,7 @@ body.admin-mode #admin-view { display: flex; }
 }
 .g-grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
 @media(max-width:520px){ .g-grid-3 { grid-template-columns: repeat(3,1fr); } }
+@media(max-width:600px){ .g-stats-row { grid-template-columns: repeat(2,1fr) !important; } }
 
 /* Guest stat */
 .g-stat { display: flex; flex-direction: column; gap: 2px; }
@@ -772,51 +773,106 @@ body.admin-mode #toast { background: var(--a-accent); color: var(--a-bg); }
       </div>
     </div>
 
-    <!-- Stats -->
-    <div class="g-grid-3">
+    <!-- Stats row 1: 4 cards -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px" class="g-stats-row">
       <div class="g-card g-stat">
         <div class="g-stat-lbl">💧 <span data-k="humi">ความชื้น</span></div>
         <div class="g-stat-val"><span id="gHumi">78</span><span class="g-stat-unit">%</span></div>
       </div>
       <div class="g-card g-stat">
-        <div class="g-stat-lbl">☀️ <span data-k="light">แสงแดด</span></div>
-        <div class="g-stat-val"><span id="gLight">48</span><span class="g-stat-unit">klx</span></div>
+        <div class="g-stat-lbl">☀️ UV Index</div>
+        <div class="g-stat-val" id="gUVVal" style="color:var(--g-warn)">6</div>
+        <div style="font-size:11px;color:var(--g-warn);margin-top:2px" id="gUVLbl">สูง</div>
       </div>
       <div class="g-card g-stat">
         <div class="g-stat-lbl">🌡 <span data-k="feels">รู้สึก</span></div>
         <div class="g-stat-val"><span id="gHI">40</span><span class="g-stat-unit">°C</span></div>
       </div>
+      <div class="g-card g-stat">
+        <div class="g-stat-lbl">💦 <span data-k="light">แสงแดด</span></div>
+        <div class="g-stat-val"><span id="gLight">48</span><span class="g-stat-unit">klx</span></div>
+      </div>
     </div>
 
-    <!-- Beach Score -->
+    <!-- Sunrise / Sunset -->
     <div class="g-card">
-      <div class="g-card-title">🏖 <span data-k="beachScore">Beach Condition Score</span></div>
-      <div class="g-score-wrap">
-        <div>
-          <div class="g-ring-outer" id="gRingOuter">
-            <div class="g-ring-inner">
-              <div class="g-ring-num" id="gScoreNum">82</div>
-              <div class="g-ring-pct">/ 100</div>
-            </div>
+      <div class="g-card-title">🌅 Sunrise · Sunset</div>
+      <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="font-size:28px">🌄</div>
+          <div>
+            <div style="font-size:11px;color:var(--g-fg3)">พระอาทิตย์ขึ้น</div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700" id="gSunrise">06:12</div>
           </div>
         </div>
-        <div class="g-score-details">
-          <div class="g-stars" id="gStars">⭐⭐⭐⭐</div>
-          <div class="g-score-label" id="gScoreLabel">เหมาะไปชายหาด</div>
-          <div class="g-score-row"><span>🌡 <span data-k="tempFactor">อุณหภูมิ</span></span><span id="sf1" style="font-weight:600;color:var(--g-ok)">ดี</span></div>
-          <div class="g-score-row"><span>💧 <span data-k="humiFactor">ความชื้น</span></span><span id="sf2" style="font-weight:600;color:var(--g-warn)">สูงเล็กน้อย</span></div>
-          <div class="g-score-row"><span>🌧 <span data-k="rainFactor">ฝน</span></span><span id="sf3" style="font-weight:600;color:var(--g-ok)">ไม่มี</span></div>
-          <div class="g-score-row"><span>☀️ <span data-k="lightFactor">แสง</span></span><span id="sf4" style="font-weight:600;color:var(--g-ok)">ดี</span></div>
+        <div style="flex:1;min-width:120px">
+          <div style="height:6px;border-radius:3px;background:linear-gradient(to right,#f59e0b,#ef4444,#7c3aed);position:relative">
+            <div id="gSunPin" style="position:absolute;top:-4px;width:14px;height:14px;background:#fff;border:2px solid var(--g-accent2);border-radius:50%;transform:translateX(-50%);box-shadow:0 1px 4px rgba(0,0,0,.2);transition:left .6s ease;left:50%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--g-fg3)">
+            <span>06:12</span><span id="gDaylight">กลางวัน 11h 52m</span><span>18:04</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="font-size:28px">🌇</div>
+          <div>
+            <div style="font-size:11px;color:var(--g-fg3)">พระอาทิตย์ตก</div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700" id="gSunset">18:04</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Beach Score + Sea Condition side by side -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="g-card">
+        <div class="g-card-title">🏖 Beach Score</div>
+        <div class="g-score-wrap">
+          <div>
+            <div class="g-ring-outer" id="gRingOuter">
+              <div class="g-ring-inner">
+                <div class="g-ring-num" id="gScoreNum">82</div>
+                <div class="g-ring-pct">/ 100</div>
+              </div>
+            </div>
+          </div>
+          <div class="g-score-details">
+            <div class="g-stars" id="gStars">⭐⭐⭐⭐</div>
+            <div class="g-score-label" id="gScoreLabel">เหมาะไปชายหาด</div>
+            <div class="g-score-row"><span>🌡 อุณหภูมิ</span><span id="sf1" style="font-weight:600;color:var(--g-ok)">ดี</span></div>
+            <div class="g-score-row"><span>💧 ความชื้น</span><span id="sf2" style="font-weight:600">สูงเล็กน้อย</span></div>
+            <div class="g-score-row"><span>🌧 ฝน</span><span id="sf3" style="font-weight:600;color:var(--g-ok)">ไม่มี</span></div>
+            <div class="g-score-row"><span>☀️ แสง</span><span id="sf4" style="font-weight:600;color:var(--g-ok)">ดี</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="g-card">
+        <div class="g-card-title">🌊 Sea Condition</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px">
+            <span>🌊 คลื่น</span><span id="gWave" style="font-weight:700;color:var(--g-ok)">สงบ</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px">
+            <span>👁 ทัศนวิสัย</span><span id="gVis" style="font-weight:700;color:var(--g-ok)">ดีมาก &gt;10km</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px">
+            <span>🤿 ดำน้ำ</span><span id="gDive" style="font-weight:700;color:var(--g-ok)">เหมาะมาก</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px">
+            <span>🛟 ธง</span><span id="gFlag" style="font-weight:700">🟢 ปลอดภัย</span>
+          </div>
+          <div style="margin-top:4px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:600;text-align:center" id="gSeaBadge" style="background:var(--g-ok-bg);color:var(--g-ok)">✅ เหมาะว่ายน้ำ</div>
         </div>
       </div>
     </div>
 
     <!-- Comfort Index -->
     <div class="g-card">
-      <div class="g-card-title">🧠 <span data-k="comfort">Comfort Index (NOAA Heat Index)</span></div>
+      <div class="g-card-title">🧠 Comfort Index (NOAA Heat Index)</div>
       <div class="g-comfort-wrap">
         <div>
-          <div style="font-size:12px;color:var(--g-fg2);margin-bottom:2px" data-k="feels">รู้สึกเหมือน</div>
+          <div style="font-size:12px;color:var(--g-fg2);margin-bottom:2px">รู้สึกเหมือน</div>
           <div class="g-hi-num" id="gHIBig">40°C</div>
           <span id="gComfBadge" style="display:inline-block;margin-top:6px;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600;background:var(--g-warn-bg);color:var(--g-warn)">⚠️ ร้อนมาก</span>
         </div>
@@ -825,10 +881,11 @@ body.admin-mode #toast { background: var(--a-accent); color: var(--a-bg); }
             <div class="g-bar-pin" id="gBarPin" style="left:65%"></div>
           </div>
           <div class="g-bar-labels">
-            <span data-k="comfCool">เย็นสบาย</span>
-            <span data-k="comfOk">สบาย</span>
-            <span data-k="comfHot">ร้อน</span>
-            <span data-k="comfDanger">อันตราย</span>
+            <span>เย็นสบาย</span><span>สบาย</span><span>ร้อน</span><span>อันตราย</span>
+          </div>
+          <div style="margin-top:12px;display:flex;flex-direction:column;gap:6px">
+            <div style="font-size:12px;color:var(--g-fg3)">💡 คำแนะนำ</div>
+            <div id="gHiAdvice" style="font-size:13px;color:var(--g-fg2)">ดื่มน้ำทุก 20 นาที · ทาครีมกันแดด SPF 50+ · หลีกเลี่ยงแดดจัด 11:00–14:00</div>
           </div>
         </div>
       </div>
@@ -836,30 +893,70 @@ body.admin-mode #toast { background: var(--a-accent); color: var(--a-bg); }
 
     <!-- Timeline -->
     <div class="g-card">
-      <div class="g-card-title">⏱ <span data-k="timeline">สภาพอากาศวันนี้</span></div>
-      <div class="g-tl" id="gTl"></div>
+      <div class="g-card-title">⏱ สภาพอากาศวันนี้</div>
+      <div class="g-tl" id="gTl">
+        <div style="font-size:13px;color:var(--g-fg3);padding:8px">กำลังโหลด...</div>
+      </div>
     </div>
 
     <!-- Forecast -->
     <div class="g-card">
-      <div class="g-card-title">🔮 <span data-k="forecast">พยากรณ์ 3 ชั่วโมง</span></div>
-      <div class="g-fcst" id="gFcst"></div>
+      <div class="g-card-title">🔮 พยากรณ์ 3 ชั่วโมงข้างหน้า</div>
+      <div class="g-fcst" id="gFcst">
+        <div style="font-size:13px;color:var(--g-fg3);padding:8px">กำลังโหลด...</div>
+      </div>
+    </div>
+
+    <!-- Best Time to visit -->
+    <div class="g-card">
+      <div class="g-card-title">🕐 ช่วงเวลาแนะนำวันนี้</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap" id="gBestTime">
+        <div style="flex:1;min-width:140px;padding:12px 16px;border-radius:12px;background:var(--g-ok-bg);border:1px solid var(--g-ok)">
+          <div style="font-size:11px;color:var(--g-ok);font-weight:600;margin-bottom:2px">🌅 เช้า — ดีที่สุด</div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:var(--g-fg)">06:00–10:00</div>
+          <div style="font-size:12px;color:var(--g-fg2);margin-top:2px">อากาศเย็นสบาย แดดไม่แรง</div>
+        </div>
+        <div style="flex:1;min-width:140px;padding:12px 16px;border-radius:12px;background:var(--g-danger-bg);border:1px solid var(--g-danger)">
+          <div style="font-size:11px;color:var(--g-danger);font-weight:600;margin-bottom:2px">🔥 กลางวัน — หลีกเลี่ยง</div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:var(--g-fg)">11:00–14:00</div>
+          <div style="font-size:12px;color:var(--g-fg2);margin-top:2px">แดดจัด UV สูง</div>
+        </div>
+        <div style="flex:1;min-width:140px;padding:12px 16px;border-radius:12px;background:var(--g-ok-bg);border:1px solid var(--g-ok)">
+          <div style="font-size:11px;color:var(--g-ok);font-weight:600;margin-bottom:2px">🌆 บ่าย–เย็น — ดี</div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:var(--g-fg)">15:00–18:00</div>
+          <div style="font-size:12px;color:var(--g-fg2);margin-top:2px">แดดลดลง เหมาะเดินเล่น</div>
+        </div>
+      </div>
     </div>
 
     <!-- Activities -->
     <div class="g-card">
-      <div class="g-card-title">🎯 <span data-k="activity">กิจกรรมแนะนำ</span></div>
-      <div class="g-acts" id="gActs"></div>
+      <div class="g-card-title">🎯 กิจกรรมแนะนำ</div>
+      <div class="g-acts" id="gActs">
+        <div style="font-size:13px;color:var(--g-fg3);padding:4px">กำลังโหลด...</div>
+      </div>
+    </div>
+
+    <!-- What to wear -->
+    <div class="g-card">
+      <div class="g-card-title">👕 แนะนำการแต่งกาย</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap" id="gWear">
+        <span style="padding:8px 14px;border-radius:999px;background:#fef3c7;color:#92400e;border:1px solid #d97706;font-size:13px">🧴 ครีมกันแดด SPF 50+</span>
+        <span style="padding:8px 14px;border-radius:999px;background:#dbeafe;color:#1e40af;border:1px solid #3b82f6;font-size:13px">🕶️ แว่นกันแดด</span>
+        <span style="padding:8px 14px;border-radius:999px;background:#d1fae5;color:#065f46;border:1px solid #059669;font-size:13px">👒 หมวก</span>
+        <span style="padding:8px 14px;border-radius:999px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;font-size:13px">👙 ชุดว่ายน้ำ</span>
+        <span id="gWearRain" style="display:none;padding:8px 14px;border-radius:999px;background:#dbeafe;color:#1e3a8a;border:1px solid #2563eb;font-size:13px">☂️ ร่ม</span>
+      </div>
     </div>
 
     <!-- QR -->
     <div class="g-card">
-      <div class="g-card-title">📱 <span data-k="shareGuest">แชร์ให้แขก</span></div>
+      <div class="g-card-title">📱 แชร์ให้แขก</div>
       <div class="g-qr-wrap">
         <div class="g-qr-box"><div id="gQrCanvas"></div></div>
         <div class="g-qr-info">
-          <div style="font-weight:600;font-size:15px" data-k="qrTitle">สแกน QR เพื่อดูสภาพอากาศ</div>
-          <div style="font-size:13px;color:var(--g-fg2);margin-top:4px" data-k="qrDesc">แขกสแกนแล้วดูข้อมูลได้ทันที ใช้ได้ตลอด ไม่มีหมดอายุ</div>
+          <div style="font-weight:600;font-size:15px">สแกน QR เพื่อดูสภาพอากาศ</div>
+          <div style="font-size:13px;color:var(--g-fg2);margin-top:4px">แขกสแกนแล้วดูข้อมูลได้ทันที ใช้ได้ตลอด ไม่มีหมดอายุ</div>
           <div class="g-qr-url" id="gQrUrl">ithala20-dashboard.vercel.app</div>
         </div>
       </div>
@@ -1528,6 +1625,70 @@ function updateGuest() {
   cb.style.color = comfColor;
   const pct = Math.min(100, Math.max(0, (HI-27)/(44-27)*100));
   document.getElementById('gBarPin').style.left = pct + '%';
+
+  // UV Index from light_lux
+  const uv = Math.min(11, Math.round(live.light / 9000));
+  const uvEl = document.getElementById('gUVVal');
+  const uvLblEl = document.getElementById('gUVLbl');
+  if (uvEl) {
+    uvEl.textContent = uv;
+    const uvColor = uv <= 2 ? 'var(--g-ok)' : uv <= 5 ? '#65a30d' : uv <= 7 ? 'var(--g-warn)' : uv <= 10 ? 'var(--g-danger)' : '#7c3aed';
+    uvEl.style.color = uvColor;
+    if (uvLblEl) {
+      uvLblEl.textContent = uv <= 2 ? 'ต่ำ' : uv <= 5 ? 'ปานกลาง' : uv <= 7 ? 'สูง' : uv <= 10 ? 'สูงมาก' : 'สูงสุด';
+      uvLblEl.style.color = uvColor;
+    }
+  }
+
+  // Sea Condition
+  const waveEl = document.getElementById('gWave');
+  const visEl = document.getElementById('gVis');
+  const diveEl = document.getElementById('gDive');
+  const flagEl = document.getElementById('gFlag');
+  const seaBadgeEl = document.getElementById('gSeaBadge');
+  if (waveEl) {
+    const waveOk = !isRain && live.humi < 85;
+    waveEl.textContent = isRain ? 'มีคลื่น' : live.humi > 85 ? 'สูงเล็กน้อย' : 'สงบ';
+    waveEl.style.color = isRain ? 'var(--g-danger)' : live.humi > 85 ? 'var(--g-warn)' : 'var(--g-ok)';
+    visEl.textContent = isRain ? 'ลดลง <5km' : '> 10 km ดีมาก';
+    visEl.style.color = isRain ? 'var(--g-warn)' : 'var(--g-ok)';
+    diveEl.textContent = waveOk ? 'เหมาะมาก' : isRain ? 'ไม่แนะนำ' : 'ปานกลาง';
+    diveEl.style.color = waveOk ? 'var(--g-ok)' : isRain ? 'var(--g-danger)' : 'var(--g-warn)';
+    flagEl.textContent = isRain ? '🔴 ระวัง' : live.humi > 90 ? '🟡 ระวัง' : '🟢 ปลอดภัย';
+    if (seaBadgeEl) {
+      seaBadgeEl.textContent = isRain ? '⚠️ ระวังคลื่น' : waveOk ? '✅ เหมาะว่ายน้ำ' : '🟡 ระมัดระวัง';
+      seaBadgeEl.style.background = isRain ? 'var(--g-danger-bg)' : waveOk ? 'var(--g-ok-bg)' : 'var(--g-warn-bg)';
+      seaBadgeEl.style.color = isRain ? 'var(--g-danger)' : waveOk ? 'var(--g-ok)' : 'var(--g-warn)';
+    }
+  }
+
+  // Sunrise/Sunset progress
+  const now = new Date();
+  const riseMin = 6*60+12, setMin = 18*60+4;
+  const nowMin = now.getHours()*60 + now.getMinutes();
+  const pct = Math.max(0, Math.min(100, (nowMin - riseMin)/(setMin - riseMin)*100));
+  const sunPin = document.getElementById('gSunPin');
+  if (sunPin) sunPin.style.left = pct + '%';
+  const totalMins = setMin - riseMin;
+  const h = Math.floor(totalMins/60), m = totalMins%60;
+  const dlEl = document.getElementById('gDaylight');
+  if (dlEl) dlEl.textContent = `กลางวัน ${h}h ${m}m`;
+
+  // Heat Index advice
+  const advEl = document.getElementById('gHiAdvice');
+  if (advEl) {
+    advEl.textContent = HI < 32
+      ? 'อากาศสบาย เหมาะออกกิจกรรมกลางแจ้ง'
+      : HI < 37
+      ? 'ดื่มน้ำทุก 20 นาที · ทาครีมกันแดด SPF 50+ · พักเป็นระยะ'
+      : HI < 41
+      ? 'ระวังอย่างยิ่ง · ดื่มน้ำมาก · หลีกเลี่ยงแดดจัด 11:00–14:00'
+      : 'อันตราย! อยู่ในร่มหรือแอร์ · ดื่มน้ำทันที · โทรหาแพทย์หากรู้สึกไม่ดี';
+  }
+
+  // Umbrella in wear section
+  const wearRain = document.getElementById('gWearRain');
+  if (wearRain) wearRain.style.display = isRain ? 'inline-block' : 'none';
 
   buildTimeline();
   buildForecast();
