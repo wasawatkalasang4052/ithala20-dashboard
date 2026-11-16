@@ -14,7 +14,7 @@ const TG_TOKEN   = '9257791655:AAH5Z91aGHJzbznoJ-gieNHQgcahsRtxUt0';
 const TG_CHAT_ID = '5058237954';
 
 // OpenWeatherMap API Key (free tier)
-const OWM_API_KEY = 'demo'; // ใส่ API key จริงที่นี่
+const OWM_API_KEY = 'a67f0f80682e4273805ab2a052ae81c7';
 
 // Activity Alert: cooldown tracking per activity id
 const alertLastSent  = {};
