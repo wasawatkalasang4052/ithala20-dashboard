@@ -255,8 +255,9 @@ async function loadRealtime() {
     // Heat Index
     const hi = calcHeatIndex(latest.temperature, latest.humidity);
     document.getElementById('val-hi').textContent = hi.value.toFixed(1);
-    document.getElementById('val-hi-level').textContent = `°C · ${hi.label}`;
     document.getElementById('val-hi').style.color = hi.color;
+    const hiLevelEl = document.getElementById('val-hi-level');
+    hiLevelEl.innerHTML = `°C · ${hi.label}<br><span style="font-size:.65rem;color:#64748b;font-weight:400">${hi.sub}</span>`;
 
     // Check alerts
     checkAlerts(latest);
@@ -969,13 +970,13 @@ function calcHeatIndex(T, RH) {
     0.002211732 * T * T * RH +
     0.00072546 * T * RH * RH +
     -0.000003582 * T * T * RH * RH;
-  let label, color;
-  if (hi < 27)      { label = 'ปกติ';         color = '#38bdf8'; }
-  else if (hi < 32) { label = 'ระวัง';         color = '#34d399'; }
-  else if (hi < 38) { label = 'ระวังมาก';      color = '#fbbf24'; }
-  else if (hi < 44) { label = 'อันตราย';       color = '#f97316'; }
-  else              { label = 'อันตรายมาก!';   color = '#f87171'; }
-  return { value: hi, label, color };
+  let label, sub, color;
+  if (hi < 27)      { label = 'สบาย';           sub = 'อากาศเย็นสบาย';                              color = '#38bdf8'; }
+  else if (hi < 32) { label = 'อุ่น';            sub = 'รู้สึกอุ่น ความชื้นเริ่มมีผล';               color = '#34d399'; }
+  else if (hi < 38) { label = 'ร้อนชื้น';        sub = 'ความชื้นสูง ทำให้รู้สึกร้อนกว่าอุณหภูมิจริง'; color = '#fbbf24'; }
+  else if (hi < 44) { label = 'อึดอัด/ร้อนชื้น'; sub = 'ความชื้นสูง ทำให้รู้สึกร้อนกว่าอุณหภูมิจริง'; color = '#f97316'; }
+  else              { label = 'ร้อนชื้นมาก';     sub = 'ความชื้นสูงมาก ระวังอ่อนเพลียหากออกแรง';     color = '#f87171'; }
+  return { value: hi, label, sub, color };
 }
 
 // ══════════════════════════════════════════
