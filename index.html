@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ITHALA20 Smart Weather Station</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a0f1e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ITHALA20">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,6 +41,7 @@
     <button class="tab-btn active" onclick="switchTab('realtime',this)">📡 เรียลไทม์</button>
     <button class="tab-btn" onclick="switchTab('daily',this)">📅 สรุปรายวัน</button>
     <button class="tab-btn" onclick="switchTab('compare',this)">🌍 เปรียบเทียบ</button>
+    <button class="tab-btn" onclick="switchTab('trend',this)">📈 Weekly Trend</button>
     <button class="tab-btn" onclick="switchTab('alert',this)">🔔 การแจ้งเตือน</button>
   </nav>
 
@@ -65,6 +72,12 @@
         <div class="card-label">สัญญาณฝน</div>
         <div class="card-value" id="val-rain">--</div>
         <div class="card-unit" id="val-rain-status">raw</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🥵</div>
+        <div class="card-label">ความร้อนสัมผัส</div>
+        <div class="card-value" id="val-hi">--</div>
+        <div class="card-unit" id="val-hi-level">°C</div>
       </div>
     </section>
 
@@ -120,6 +133,20 @@
           <button class="btn-primary" onclick="loadDailySummary()">โหลด</button>
           <button class="btn-success" onclick="exportPDF()" id="btn-pdf" style="display:none">📄 Export PDF</button>
           <button class="btn-outline" onclick="exportDailyCSV()" id="btn-export-daily" style="display:none">⬇️ CSV</button>
+        </div>
+      </div>
+
+      <!-- Rain Accumulation bar -->
+      <div id="rain-accum-wrap" style="display:none;margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:.82rem;color:#64748b">🌧️ ปริมาณฝนสะสมวันนี้ (ประมาณการ)</span>
+          <span id="rain-accum-mm" style="font-size:1.1rem;font-weight:700;color:#38bdf8;font-family:'Space Grotesk',sans-serif">-- mm</span>
+        </div>
+        <div style="background:#091020;border-radius:8px;height:10px;overflow:hidden">
+          <div id="rain-accum-bar" style="height:100%;background:linear-gradient(90deg,#0ea5e9,#38bdf8);border-radius:8px;transition:width .6s;width:0%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:.68rem;color:#334155;margin-top:4px">
+          <span>เล็กน้อย &lt;5mm</span><span>ปานกลาง 5–20mm</span><span>หนัก &gt;20mm</span>
         </div>
       </div>
 
@@ -211,7 +238,49 @@
     </section>
   </div><!-- /tab-compare -->
 
-  <!-- ════ TAB 4: ALERT ════ -->
+  <!-- ════ TAB 4: WEEKLY TREND ════ -->
+  <div id="tab-trend" class="tab-content">
+    <section class="chart-box">
+      <div class="section-header">
+        <h2>📈 Weekly Trend — 7 วันย้อนหลัง</h2>
+        <button class="btn-outline" onclick="loadWeeklyTrend()">🔄 รีเฟรช</button>
+      </div>
+
+      <div id="trend-loading" class="loading-msg">⏳ กำลังโหลดข้อมูล 7 วัน...</div>
+      <div id="trend-content" style="display:none">
+
+        <!-- Summary row -->
+        <div class="summary-grid" id="trend-cards" style="margin-bottom:20px"></div>
+
+        <!-- Temp trend -->
+        <div class="chart-box inner-box" style="margin-bottom:16px">
+          <h2>🌡️ อุณหภูมิเฉลี่ยรายวัน (°C)</h2>
+          <canvas id="trend-chart-temp"></canvas>
+        </div>
+
+        <!-- Humidity trend -->
+        <div class="chart-box inner-box" style="margin-bottom:16px">
+          <h2>💧 ความชื้นเฉลี่ยรายวัน (%)</h2>
+          <canvas id="trend-chart-hum"></canvas>
+        </div>
+
+        <!-- Rain trend -->
+        <div class="chart-box inner-box" style="margin-bottom:16px">
+          <h2>🌧️ ปริมาณฝนสะสมรายวัน (mm ประมาณการ)</h2>
+          <canvas id="trend-chart-rain"></canvas>
+        </div>
+
+        <!-- Heat Index trend -->
+        <div class="chart-box inner-box" style="margin-bottom:0">
+          <h2>🥵 Heat Index รายวัน (°C รู้สึก)</h2>
+          <canvas id="trend-chart-hi"></canvas>
+        </div>
+
+      </div>
+    </section>
+  </div><!-- /tab-trend -->
+
+  <!-- ════ TAB 5: ALERT ════ -->
   <div id="tab-alert" class="tab-content">
     <section class="chart-box">
       <h2>🔔 แจ้งเตือนกิจกรรม</h2>
@@ -331,5 +400,10 @@
   </footer>
 
   <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
 </body>
 </html>
