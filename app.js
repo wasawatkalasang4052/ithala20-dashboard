@@ -22,6 +22,59 @@ const alertLastSent = { temp: 0, rain: 0, hum: 0 };
 // Charts instances
 const charts = {};
 
+// ── Preset buttons + slider sync ──
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.preset-btn');
+  if (!btn) return;
+  const target = btn.dataset.target;
+  const val    = btn.dataset.val;
+  document.getElementById(target).value = val;
+  // highlight active
+  btn.closest('.preset-row').querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // sync slider if present
+  const sliderMap = {
+    'alert-temp-val':  ['alert-temp-slider', 'alert-temp-display', '°C'],
+    'alert-rain-val':  ['alert-rain-slider', 'alert-rain-display', ' raw'],
+    'alert-hum-val':   ['alert-hum-slider',  'alert-hum-display',  '%'],
+    'alert-cooldown':  ['alert-cd-slider',   'alert-cd-display',   ' นาที'],
+  };
+  if (sliderMap[target]) {
+    const [sliderId, displayId, unit] = sliderMap[target];
+    const slider = document.getElementById(sliderId);
+    if (slider) { slider.value = val; updateSliderFill(slider); }
+    const disp = document.getElementById(displayId);
+    if (disp) disp.textContent = val + unit;
+  }
+});
+
+function syncSlider(hiddenId, sliderId, val, unit) {
+  document.getElementById(hiddenId).value = val;
+  const disp = document.getElementById(sliderId.replace('-slider', '-display'));
+  if (disp) disp.textContent = val + unit;
+  updateSliderFill(document.getElementById(sliderId));
+  // clear preset active if custom value
+  const presets = document.querySelectorAll(`[data-target="${hiddenId}"]`);
+  presets.forEach(b => {
+    b.classList.toggle('active', b.dataset.val == val);
+  });
+}
+
+function updateSliderFill(slider) {
+  if (!slider) return;
+  const min = +slider.min, max = +slider.max, val = +slider.value;
+  const pct = ((val - min) / (max - min)) * 100;
+  slider.style.background = `linear-gradient(90deg,#0ea5e9 ${pct}%,#1e3a5f ${pct}%)`;
+}
+
+// init slider fills on load
+function initSliders() {
+  ['alert-temp-slider','alert-rain-slider','alert-hum-slider','alert-cd-slider'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) updateSliderFill(el);
+  });
+}
+
 // ── Tab switch ──
 function switchTab(name, btn) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -776,6 +829,7 @@ async function init() {
   document.getElementById('daily-date').value   = today;
   document.getElementById('compare-date').value = today;
 
+  initSliders();
   initMap();
   await loadRealtime();
   loadHeatmap();
