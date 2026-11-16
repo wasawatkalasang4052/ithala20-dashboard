@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<title>ITHALA20 Weather Dashboard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<style>
+:root {
+  --bg:#f0f4f8;--surface:#fff;--surface2:#e8eef4;--fg:#1a2535;--fg2:#4a5a70;
+  --accent:#0066cc;--accent-light:#e0edff;--border:#d1dbe8;
+  --ok:#16a34a;--ok-bg:#dcfce7;--warn:#d97706;--warn-bg:#fef9c3;
+  --danger:#dc2626;--danger-bg:#fee2e2;--rain:#3b82c4;--rain-bg:#dbeafe;
+  --sun:#d97706;--sun-bg:#fef3c7;--tab-h:44px;--header-h:54px;--r:12px;
+  --shadow:0 1px 4px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.04);
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1923;--surface:#1a2535;--surface2:#22334a;--fg:#e8f0f8;--fg2:#8ba4be;
+  --accent:#4d9fff;--accent-light:#1a2d45;--rain-bg:#1a2d45;--sun-bg:#2d2010;
+  --ok-bg:#0d2a1a;--warn-bg:#2a200d;--danger-bg:#2a0d0d;--border:#2a3d52;color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0f1923;--surface:#1a2535;--surface2:#22334a;--fg:#e8f0f8;--fg2:#8ba4be;
+  --accent:#4d9fff;--accent-light:#1a2d45;--rain-bg:#1a2d45;--sun-bg:#2d2010;
+  --ok-bg:#0d2a1a;--warn-bg:#2a200d;--danger-bg:#2a0d0d;--border:#2a3d52;color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-serif;font-size:15px;line-height:1.5;min-height:100%}
+
+/* Header */
+.hdr{position:sticky;top:env(safe-area-inset-top,0px);z-index:100;height:var(--header-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);flex-shrink:0;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.logo{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;color:var(--accent)}
+.logo span{color:var(--fg2);font-weight:400}
+.hdr-time{margin-left:auto;font-size:12px;color:var(--fg2);font-variant-numeric:tabular-nums}
+.lang-btn{padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--fg2);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.lang-btn:hover{background:var(--accent-light);color:var(--accent)}
+
+/* Tabs */
+.tabs{position:sticky;top:calc(var(--header-h) + env(safe-area-inset-top,0px));z-index:90;background:var(--surface);border-bottom:1px solid var(--border);display:flex;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.tab-btn{padding:12px 18px;font-size:14px;font-weight:500;border:none;cursor:pointer;background:none;color:var(--fg2);border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* Layout */
+.view{display:none}.view.active{display:block}
+.wrap{max-width:900px;margin:0 auto;padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.grid{display:grid;gap:16px}.grid-2{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:repeat(3,1fr)}.grid-4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:640px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+@media(min-width:641px) and (max-width:800px){.grid-4{grid-template-columns:repeat(2,1fr)}}
+
+/* Card */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;box-shadow:var(--shadow)}
+.card-title{font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg2);margin-bottom:12px}
+.sh{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--fg2);margin:24px 0 12px}
+.sh:first-child{margin-top:0}
+
+/* Weather hero */
+.hero{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;box-shadow:var(--shadow)}
+.hero-emoji{font-size:52px;line-height:1}
+.hero-desc{font-family:'Space Grotesk',sans-serif;font-size:21px;font-weight:600;margin-top:10px;text-wrap:balance}
+.hero-sub{font-size:14px;color:var(--fg2);margin-top:4px}
+.badges{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:999px;font-size:14px;font-weight:500}
+.badge.clear{background:var(--ok-bg);color:var(--ok)}.badge.rain{background:var(--rain-bg);color:var(--rain)}.badge.hot{background:var(--sun-bg);color:var(--sun)}.badge.warn{background:var(--warn-bg);color:var(--warn)}.badge.danger{background:var(--danger-bg);color:var(--danger)}.badge.ok{background:var(--ok-bg);color:var(--ok)}
+
+/* Stats */
+.stat{display:flex;flex-direction:column;gap:4px}
+.stat-label{font-size:12px;color:var(--fg2);letter-spacing:.03em}
+.stat-val{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.stat-unit{font-size:14px;font-weight:400;color:var(--fg2)}
+
+/* Beach Score */
+.beach-score{text-align:center;padding:16px 0}
+.score-ring{width:120px;height:120px;border-radius:50%;margin:0 auto 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:38px;border:6px solid;transition:border-color .4s}
+.score-stars{font-size:20px;letter-spacing:2px;margin-top:4px}
+.score-label{font-weight:600;font-size:14px;margin-top:6px}
+
+/* Comfort bar */
+.comfort-track{height:10px;border-radius:5px;background:linear-gradient(to right,#3b82f6 0%,#22c55e 40%,#eab308 70%,#ef4444 100%);position:relative;overflow:hidden}
+.comfort-needle{position:absolute;top:0;height:100%;width:3px;background:var(--fg);border-radius:2px;transform:translateX(-50%);transition:left .6s ease}
+.comfort-lbls{display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--fg2)}
+
+/* Timeline */
+.timeline{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px}
+.tl-item{flex:1;min-width:52px;text-align:center;border-radius:8px;padding:8px 4px;border:1px solid var(--border);background:var(--surface2)}
+.tl-time{font-size:10px;color:var(--fg2);margin-bottom:3px}
+.tl-emoji{font-size:18px;line-height:1}
+.tl-temp{font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;margin-top:2px}
+.tl-now{border-color:var(--accent);background:var(--accent-light)}
+
+/* Activity chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.chip{padding:6px 12px;border-radius:999px;font-size:13px;border:1px solid var(--border);background:var(--surface2)}
+.chip.good{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}.chip.bad{background:var(--danger-bg);border-color:var(--danger);color:var(--danger)}.chip.warn{background:var(--warn-bg);border-color:var(--warn);color:var(--warn)}
+
+/* QR */
+.qr-box{display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px;background:var(--surface2);border-radius:8px;text-align:center}
+.qr-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;width:70px}
+.qr-cell{aspect-ratio:1;border-radius:1px;background:var(--fg)}.qr-cell.w{background:var(--surface)}
+
+/* Forecast pills */
+.fcst-row{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
+.fcst-item{flex-shrink:0;text-align:center;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);min-width:72px}
+.fcst-time{font-size:11px;color:var(--fg2)}
+.fcst-emoji{font-size:22px;margin:4px 0}
+.fcst-temp{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600}
+.fcst-note{font-size:10px;color:var(--fg2);margin-top:2px}
+
+/* Chart */
+.chart-wrap{position:relative;height:220px}
+
+/* Heatmap */
+.hmap-wrap{overflow-x:auto}
+.hmap{display:grid;gap:2px;grid-template-columns:repeat(25,1fr);min-width:600px}
+.hmap-cell{aspect-ratio:1;border-radius:2px;cursor:default;transition:transform .1s}
+.hmap-cell:hover{transform:scale(1.3);z-index:2}
+.hmap-label{font-size:10px;color:var(--fg2);text-align:center;padding-top:4px}
+
+/* Health */
+.health-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.health-row:last-child{border-bottom:none}
+.h-val{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;font-variant-numeric:tabular-nums}
+.h-val.ok{color:var(--ok)}.h-val.warn{color:var(--warn)}.h-val.danger{color:var(--danger)}
+
+/* Alert Log */
+.log-entry{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.log-entry:last-child{border-bottom:none}
+.log-time{color:var(--fg2);font-variant-numeric:tabular-nums;white-space:nowrap;flex-shrink:0}
+.log-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.log-dot.rain{background:var(--rain)}.log-dot.stuck{background:var(--warn)}.log-dot.miss{background:var(--danger)}.log-dot.ok{background:var(--ok)}
+
+/* Threshold config */
+.thresh-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.thresh-row:last-child{border-bottom:none}
+.thresh-label{flex:1;min-width:140px;font-size:14px}
+.thresh-input{width:80px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--fg);font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;text-align:center}
+.thresh-unit{font-size:12px;color:var(--fg2)}
+.save-btn{padding:7px 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.save-btn:hover{opacity:.85}
+
+/* Telegram */
+.tg-box{background:var(--accent-light);border:1px solid var(--accent);border-radius:var(--r);padding:20px}
+.code-blk{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-family:monospace;font-size:11px;color:var(--fg);overflow-x:auto;white-space:pre;margin:6px 0;line-height:1.6}
+
+/* Export */
+.export-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.exp-btn{display:flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--fg);font-size:13px;font-weight:500;cursor:pointer;transition:background .12s}
+.exp-btn:hover{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
+
+/* Range btns */
+.range-row{display:flex;gap:6px;margin-bottom:14px}
+.r-btn{padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--fg2);font-size:13px;cursor:pointer}
+.r-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* Map (multi-station) */
+.map-box{background:var(--surface2);border-radius:var(--r);padding:16px;position:relative;min-height:220px;overflow:hidden}
+.map-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:80px;opacity:.07;pointer-events:none;user-select:none}
+.station-pin{position:absolute;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:default}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 2px var(--ok);background:var(--ok)}
+.pin-dot.off{background:var(--fg2);box-shadow:0 0 0 2px var(--fg2)}
+.pin-label{font-size:11px;font-weight:600;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:2px 6px;white-space:nowrap}
+.pin-temp{font-size:10px;color:var(--fg2);white-space:nowrap}
+
+/* Toast */
+#toast{position:fixed;bottom:max(24px,env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%) translateY(80px);background:var(--fg);color:var(--bg);padding:10px 20px;border-radius:999px;font-size:13px;font-weight:500;z-index:999;transition:transform .3s;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+/* Tooltip */
+#tooltip{position:fixed;pointer-events:none;background:var(--fg);color:var(--bg);padding:5px 10px;border-radius:6px;font-size:12px;z-index:200;display:none}
+</style>
+
+<div id="toast"></div>
+<div id="tooltip"></div>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="live-dot"></div>
+  <div class="logo">ITHALA20 <span>PHUKET-01</span></div>
+  <button class="lang-btn" onclick="toggleLang()" id="langBtn">EN</button>
+  <div class="hdr-time" id="hTime">--:--</div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('guest',this)"><span data-k="tabGuest">🌤 Guest</span></button>
+  <button class="tab-btn" onclick="switchTab('admin',this)"><span data-k="tabAdmin">🔧 Admin</span></button>
+</div>
+
+<!-- ══ GUEST VIEW ══ -->
+<div id="tab-guest" class="view active">
+<div class="wrap">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div id="gEmoji" class="hero-emoji">☀️</div>
+    <div id="gDesc" class="hero-desc">แดดจัด อุณหภูมิ 34°C</div>
+    <div id="gSub" class="hero-sub">ความชื้น 78% · แสง 48 klx · ภูเก็ต</div>
+    <div class="badges">
+      <span id="gRainBadge" class="badge clear">✅ <span data-k="noRain">ไม่มีฝน</span></span>
+      <span id="gTempBadge" class="badge hot">🌡 <span data-k="hot">ร้อน</span></span>
+    </div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="grid grid-3" style="margin-top:16px">
+    <div class="card stat"><div class="stat-label">🌡 <span data-k="temp">อุณหภูมิ</span></div><div class="stat-val"><span id="gTemp">34</span><span class="stat-unit">°C</span></div></div>
+    <div class="card stat"><div class="stat-label">💧 <span data-k="humi">ความชื้น</span></div><div class="stat-val"><span id="gHumi">78</span><span class="stat-unit">%</span></div></div>
+    <div class="card stat"><div class="stat-label">☀️ <span data-k="light">แสง</span></div><div class="stat-val"><span id="gLight">48</span><span class="stat-unit">klx</span></div></div>
+  </div>
+
+  <!-- Beach Score -->
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">🏖 <span data-k="beachScore">Beach Condition Score</span></div>
+    <div class="grid grid-2">
+      <div class="beach-score">
+        <div class="score-ring" id="scoreRing" style="border-color:var(--ok);color:var(--ok)">
+          <span id="scorePct">82</span><span style="font-size:16px">%</span>
+        </div>
+        <div class="score-stars" id="scoreStars">⭐⭐⭐⭐</div>
+        <div class="score-label" id="scoreLabel">เหมาะไปชายหาด</div>
+      </div>
+      <div style="display:flex;flex-direction:column;justify-content:center;gap:8px;font-size:13px">
+        <div>🌡 <span data-k="tempFactor">อุณหภูมิ</span> <span id="sf1" style="color:var(--ok);font-weight:600">ดี</span></div>
+        <div>💧 <span data-k="humiFactor">ความชื้น</span> <span id="sf2" style="color:var(--warn);font-weight:600">สูงเล็กน้อย</span></div>
+        <div>🌧 <span data-k="rainFactor">ฝน</span> <span id="sf3" style="color:var(--ok);font-weight:600">ไม่มี</span></div>
+        <div>☀️ <span data-k="lightFactor">แสง</span> <span id="sf4" style="color:var(--ok);font-weight:600">ดี</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comfort Index -->
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">🌡 <span data-k="comfort">Comfort Index (Heat Index)</span></div>
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <div><span style="font-family:'Space Grotesk',sans-serif;font-size:38px;font-weight:700" id="gHI">40</span><span style="font-size:16px;color:var(--fg2)"> °C <span data-k="feels">รู้สึก</span></span></div>
+      <span id="gComfortBadge" class="badge warn">⚠️ <span data-k="veryHot">ร้อนมาก ระวังตัว</span></span>
+    </div>
+    <div style="margin-top:12px">
+      <div class="comfort-track"><div class="comfort-needle" id="gNeedle" style="left:65%"></div></div>
+      <div class="comfort-lbls"><span data-k="comfCool">เย็นสบาย</span><span data-k="comfOk">สบาย</span><span data-k="comfHot">ร้อน</span><span data-k="comfDanger">อันตราย</span></div>
+    </div>
+  </div>
+
+  <!-- Weather Timeline -->
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">⏱ <span data-k="timeline">สภาพอากาศวันนี้ (Timeline)</span></div>
+    <div class="timeline" id="gTimeline"></div>
+  </div>
+
+  <!-- 3h Forecast -->
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">🔮 <span data-k="forecast">ทำนาย 3 ชั่วโมงข้างหน้า (Rule-based)</span></div>
+    <div class="fcst-row" id="gForecast"></div>
+  </div>
+
+  <!-- Activity -->
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">🎯 <span data-k="activity">คำแนะนำกิจกรรม</span></div>
+    <div class="chips" id="gActivities"></div>
+  </div>
+
+  <!-- QR -->
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">📱 <span data-k="shareGuest">แชร์ให้แขก</span></div>
+    <div class="qr-box">
+      <div class="qr-grid" id="qrGrid"></div>
+      <div style="font-size:12px;color:var(--fg2)" data-k="qrSub">สแกน QR เพื่อเปิด Guest Dashboard</div>
+      <div style="font-size:11px;background:var(--surface);padding:4px 10px;border-radius:4px;border:1px solid var(--border);font-family:monospace">ithala20.vercel.app/guest</div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ══ ADMIN VIEW ══ -->
+<div id="tab-admin" class="view">
+<div class="wrap">
+
+  <!-- Time series chart -->
+  <div class="sh" data-k="chartTitle">กราฟอนุกรมเวลา</div>
+  <div class="card">
+    <div class="range-row">
+      <button class="r-btn active" onclick="setRange(24,this)">24h</button>
+      <button class="r-btn" onclick="setRange(168,this)">7d</button>
+    </div>
+    <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+  </div>
+
+  <!-- Heatmap -->
+  <div class="sh" data-k="heatmapTitle">Heatmap รายชั่วโมง × 7 วัน (อุณหภูมิ)</div>
+  <div class="card">
+    <div style="font-size:12px;color:var(--fg2);margin-bottom:10px" data-k="heatmapSub">แต่ละช่องคือ 1 ชั่วโมง — เข้มกว่า = ร้อนกว่า · hover ดูรายละเอียด</div>
+    <div class="hmap-wrap"><div class="hmap" id="hmap"></div></div>
+    <div style="display:flex;gap:4px;align-items:center;margin-top:10px;font-size:11px;color:var(--fg2)">
+      <div style="width:12px;height:12px;border-radius:2px;background:#bfdbfe"></div><span>27°C</span>
+      <div style="width:12px;height:12px;border-radius:2px;background:#3b82f6;margin-left:6px"></div><span>31°C</span>
+      <div style="width:12px;height:12px;border-radius:2px;background:#ef4444;margin-left:6px"></div><span>35°C</span>
+      <div style="width:12px;height:12px;border-radius:2px;background:#7f1d1d;margin-left:6px"></div><span>38°C+</span>
+    </div>
+  </div>
+
+  <!-- Multi-station map -->
+  <div class="sh" data-k="mapTitle">แผนที่สถานี (Multi-Station)</div>
+  <div class="card">
+    <div class="map-box">
+      <div class="map-bg">🗺</div>
+      <div class="station-pin" style="left:30%;top:40%">
+        <div class="pin-dot"></div>
+        <div class="pin-label">ชายหาด</div>
+        <div class="pin-temp" id="p1t">34°C ☀️</div>
+      </div>
+      <div class="station-pin" style="left:55%;top:25%">
+        <div class="pin-dot"></div>
+        <div class="pin-label">สระว่ายน้ำ</div>
+        <div class="pin-temp">33°C ⛅</div>
+      </div>
+      <div class="station-pin" style="left:70%;top:60%">
+        <div class="pin-dot off"></div>
+        <div class="pin-label">ร้านอาหาร</div>
+        <div class="pin-temp" style="color:var(--warn)">ออฟไลน์</div>
+      </div>
+      <div class="station-pin" style="left:20%;top:70%">
+        <div class="pin-dot"></div>
+        <div class="pin-label">ล็อบบี้</div>
+        <div class="pin-temp">29°C 🌧</div>
+      </div>
+      <div style="position:absolute;bottom:8px;right:12px;font-size:11px;color:var(--fg2);background:var(--surface);padding:3px 8px;border-radius:4px;border:1px solid var(--border)">จุดสีเทา = ออฟไลน์</div>
+    </div>
+  </div>
+
+  <!-- IoT Health -->
+  <div class="sh" data-k="healthTitle">IoT Health Monitor</div>
+  <div class="card">
+    <div class="health-row"><span>📶 Uptime (30d)</span><span class="h-val ok">99.1%</span></div>
+    <div class="health-row"><span>📭 Missing Data Rate</span><span class="h-val ok">0.9%</span></div>
+    <div class="health-row"><span>💧 Wet-Stuck Sensor</span><span class="h-val warn" id="stuckSt">พบ 2 ครั้งวันนี้</span></div>
+    <div class="health-row"><span>⏱ <span data-k="lastUpdate">อัพเดตล่าสุด</span></span><span class="h-val ok" id="lastUpd">0s ago</span></div>
+  </div>
+
+  <!-- Daily Stats -->
+  <div class="sh" data-k="dailyTitle">สถิติรายวัน</div>
+  <div class="grid grid-4" style="margin-bottom:16px">
+    <div class="card stat"><div class="stat-label">🌡 <span data-k="maxTemp">อุณหภูมิสูงสุด</span></div><div class="stat-val">36<span class="stat-unit">°C</span></div><div style="font-size:11px;color:var(--fg2);margin-top:4px">10:42 น.</div></div>
+    <div class="card stat"><div class="stat-label">🌡 <span data-k="minTemp">อุณหภูมิต่ำสุด</span></div><div class="stat-val">27<span class="stat-unit">°C</span></div><div style="font-size:11px;color:var(--fg2);margin-top:4px">05:18 น.</div></div>
+    <div class="card stat"><div class="stat-label">🌧 <span data-k="rainHr">ฝนตก</span></div><div class="stat-val">1<span class="stat-unit">ชม.</span></div><div style="font-size:11px;color:var(--fg2);margin-top:4px">08:00–09:03</div></div>
+    <div class="card stat"><div class="stat-label">💧 <span data-k="avgHumi">ความชื้นเฉลี่ย</span></div><div class="stat-val">74<span class="stat-unit">%</span></div></div>
+  </div>
+
+  <!-- Alert Threshold Config -->
+  <div class="sh" data-k="threshTitle">⚙️ ตั้งค่า Alert Threshold</div>
+  <div class="card">
+    <div class="thresh-row">
+      <div class="thresh-label">🌡 <span data-k="alertTemp">แจ้งเตือนเมื่ออุณหภูมิ &gt;</span></div>
+      <input class="thresh-input" type="number" id="tTemp" value="36" min="25" max="45">
+      <span class="thresh-unit">°C</span>
+    </div>
+    <div class="thresh-row">
+      <div class="thresh-label">💧 <span data-k="alertHumi">แจ้งเตือนเมื่อความชื้น &gt;</span></div>
+      <input class="thresh-input" type="number" id="tHumi" value="90" min="50" max="100">
+      <span class="thresh-unit">%</span>
+    </div>
+    <div class="thresh-row">
+      <div class="thresh-label">🌧 <span data-k="alertRain">แจ้งเตือนเมื่อฝนตกต่อเนื่อง &gt;</span></div>
+      <input class="thresh-input" type="number" id="tRain" value="30" min="5" max="120">
+      <span class="thresh-unit" data-k="mins">นาที</span>
+    </div>
+    <div class="thresh-row">
+      <div class="thresh-label">📭 <span data-k="alertMiss">แจ้งเตือนเมื่อ Missing &gt;</span></div>
+      <input class="thresh-input" type="number" id="tMiss" value="5" min="1" max="30">
+      <span class="thresh-unit">%</span>
+    </div>
+    <div style="margin-top:14px;display:flex;gap:10px;align-items:center">
+      <button class="save-btn" onclick="saveThresh()">💾 <span data-k="saveThresh">บันทึกการตั้งค่า</span></button>
+      <span id="threshSaved" style="font-size:12px;color:var(--ok);display:none">✅ บันทึกแล้ว</span>
+    </div>
+  </div>
+
+  <!-- Alert Log -->
+  <div class="sh" data-k="logTitle">Alert Log</div>
+  <div class="card" id="alertLog">
+    <div class="log-entry"><div class="log-dot rain"></div><span class="log-time">08:00</span><span>🌧 ฝนเริ่มตก (rain_raw=1240)</span></div>
+    <div class="log-entry"><div class="log-dot stuck"></div><span class="log-time">09:03</span><span>⚠️ Wet-Stuck: เซ็นเซอร์รายงานฝนแต่แสงสูง</span></div>
+    <div class="log-entry"><div class="log-dot ok"></div><span class="log-time">09:18</span><span>✅ ฝนหยุดแล้ว (rain_raw=2840)</span></div>
+    <div class="log-entry"><div class="log-dot miss"></div><span class="log-time">11:30</span><span>📭 ข้อมูลขาดหาย 3 แถว (Wi-Fi ชั่วคราว)</span></div>
+  </div>
+
+  <!-- Export -->
+  <div class="sh" data-k="exportTitle">📤 Export รายงาน</div>
+  <div class="card">
+    <div style="font-size:13px;color:var(--fg2);margin-bottom:12px" data-k="exportSub">ดาวน์โหลดข้อมูลย้อนหลัง — เจ้าหน้าที่เปิดใน Excel หรือ แนบรายงานได้เลย</div>
+    <div class="export-row">
+      <button class="exp-btn" onclick="exportCSV()">📊 <span data-k="expCSV">Export CSV (24h)</span></button>
+      <button class="exp-btn" onclick="exportJSON()">🗂 <span data-k="expJSON">Export JSON</span></button>
+      <button class="exp-btn" onclick="copyReport()">📋 <span data-k="expReport">Copy สรุปรายวัน</span></button>
+    </div>
+  </div>
+
+  <!-- Telegram -->
+  <div class="sh" data-k="tgTitle">📱 Telegram Bot Alert</div>
+  <div class="tg-box">
+    <div style="font-weight:600;margin-bottom:10px">⚙️ <span data-k="tgSetup">ตั้งค่า Telegram Bot สำหรับ ESP32</span></div>
+    <div style="font-size:12px;font-weight:600;margin-bottom:4px">1. Token + Chat ID</div>
+    <div class="code-blk">#define TG_TOKEN  "123456789:AAxxxxxxxxxxxxxxxxxxxxxx"
+#define TG_CHAT   "987654321"</div>
+    <div style="font-size:12px;font-weight:600;margin:10px 0 4px">2. sendTelegram()</div>
+    <div class="code-blk">void sendTelegram(String msg) {
+  if (WiFi.status() != WL_CONNECTED) return;
+  HTTPClient http;
+  String url = "https://api.telegram.org/bot"
+    + String(TG_TOKEN) + "/sendMessage?chat_id="
+    + String(TG_CHAT) + "&text=" + urlencode(msg);
+  http.begin(url); http.GET(); http.end();
+}</div>
+    <div style="font-size:12px;font-weight:600;margin:10px 0 4px">3. ใช้ใน loop() + threshold ที่ตั้งไว้</div>
+    <div class="code-blk">if (rain_raw &lt; 2000 &amp;&amp; !wasRaining) {
+  sendTelegram("🌧 ITHALA20: ฝนเริ่มตก (rain="
+    + String(rain_raw) + ")");
+  wasRaining = true;
+}
+if (temp > THRESH_TEMP) {
+  sendTelegram("🌡 ร้อนมาก! " + String(temp) + "°C");
+}</div>
+    <div style="margin-top:10px;font-size:12px;color:var(--fg2)">💡 หา Chat ID: พิมพ์ /start กับ bot → เรียก <code>api.telegram.org/bot&lt;TOKEN&gt;/getUpdates</code></div>
+  </div>
+
+</div>
+</div>
+
+<script>
+// ═══════════════════════════════
+// i18n
+// ═══════════════════════════════
+const T = {
+  th: {
+    tabGuest:'🌤 Guest',tabAdmin:'🔧 Admin',noRain:'ไม่มีฝน',hot:'ร้อน',
+    temp:'อุณหภูมิ',humi:'ความชื้น',light:'แสง',feels:'รู้สึก',
+    beachScore:'Beach Condition Score',veryHot:'ร้อนมาก ระวังตัว',
+    comfort:'Comfort Index (Heat Index)',comfCool:'เย็นสบาย',comfOk:'สบาย',comfHot:'ร้อน',comfDanger:'อันตราย',
+    timeline:'สภาพอากาศวันนี้ (Timeline)',forecast:'ทำนาย 3 ชั่วโมงข้างหน้า (Rule-based)',
+    activity:'คำแนะนำกิจกรรม',shareGuest:'แชร์ให้แขก',qrSub:'สแกน QR เพื่อเปิด Guest Dashboard',
+    chartTitle:'กราฟอนุกรมเวลา',heatmapTitle:'Heatmap รายชั่วโมง × 7 วัน (อุณหภูมิ)',
+    heatmapSub:'แต่ละช่องคือ 1 ชั่วโมง — เข้มกว่า = ร้อนกว่า · hover ดูรายละเอียด',
+    mapTitle:'แผนที่สถานี (Multi-Station)',healthTitle:'IoT Health Monitor',
+    lastUpdate:'อัพเดตล่าสุด',dailyTitle:'สถิติรายวัน',maxTemp:'อุณหภูมิสูงสุด',
+    minTemp:'อุณหภูมิต่ำสุด',rainHr:'ฝนตก',avgHumi:'ความชื้นเฉลี่ย',
+    threshTitle:'⚙️ ตั้งค่า Alert Threshold',alertTemp:'แจ้งเตือนเมื่ออุณหภูมิ >',
+    alertHumi:'แจ้งเตือนเมื่อความชื้น >',alertRain:'แจ้งเตือนเมื่อฝนตกต่อเนื่อง >',
+    alertMiss:'แจ้งเตือนเมื่อ Missing >',mins:'นาที',saveThresh:'บันทึกการตั้งค่า',
+    logTitle:'Alert Log',exportTitle:'📤 Export รายงาน',
+    exportSub:'ดาวน์โหลดข้อมูลย้อนหลัง — เจ้าหน้าที่เปิดใน Excel หรือแนบรายงาน',
+    expCSV:'Export CSV (24h)',expJSON:'Export JSON',expReport:'Copy สรุปรายวัน',
+    tgTitle:'📱 Telegram Bot Alert',tgSetup:'ตั้งค่า Telegram Bot สำหรับ ESP32',
+    tempFactor:'อุณหภูมิ',humiFactor:'ความชื้น',rainFactor:'ฝน',lightFactor:'แสง',
+  },
+  en: {
+    tabGuest:'🌤 Guest',tabAdmin:'🔧 Admin',noRain:'No Rain',hot:'Hot',
+    temp:'Temperature',humi:'Humidity',light:'Light',feels:'Feels like',
+    beachScore:'Beach Condition Score',veryHot:'Very Hot — be careful',
+    comfort:'Comfort Index (Heat Index)',comfCool:'Cool',comfOk:'Comfort',comfHot:'Hot',comfDanger:'Danger',
+    timeline:"Today's Weather Timeline",forecast:'3-Hour Forecast (Rule-based)',
+    activity:'Activity Recommendations',shareGuest:'Share with Guests',qrSub:'Scan QR to open Guest Dashboard',
+    chartTitle:'Time Series Chart',heatmapTitle:'Hourly Heatmap × 7 days (Temperature)',
+    heatmapSub:'Each cell = 1 hour — darker = hotter · hover for details',
+    mapTitle:'Station Map (Multi-Station)',healthTitle:'IoT Health Monitor',
+    lastUpdate:'Last Update',dailyTitle:'Daily Statistics',maxTemp:'Max Temperature',
+    minTemp:'Min Temperature',rainHr:'Rainfall',avgHumi:'Avg Humidity',
+    threshTitle:'⚙️ Alert Threshold Config',alertTemp:'Alert when temperature >',
+    alertHumi:'Alert when humidity >',alertRain:'Alert when rain duration >',
+    alertMiss:'Alert when missing data >',mins:'min',saveThresh:'Save Settings',
+    logTitle:'Alert Log',exportTitle:'📤 Export Report',
+    exportSub:'Download historical data — open in Excel or attach to report',
+    expCSV:'Export CSV (24h)',expJSON:'Export JSON',expReport:'Copy Daily Summary',
+    tgTitle:'📱 Telegram Bot Alert',tgSetup:'Configure Telegram Bot for ESP32',
+    tempFactor:'Temperature',humiFactor:'Humidity',rainFactor:'Rain',lightFactor:'Light',
+  }
+};
+let lang = 'th';
+function toggleLang() {
+  lang = lang === 'th' ? 'en' : 'th';
+  document.getElementById('langBtn').textContent = lang === 'th' ? 'EN' : 'ไทย';
+  document.querySelectorAll('[data-k]').forEach(el => {
+    const k = el.getAttribute('data-k');
+    if (T[lang][k] !== undefined) el.textContent = T[lang][k];
+  });
+  updateGuest();
+}
+
+// ═══════════════════════════════
+// Clock
+// ═══════════════════════════════
+function tick() {
+  document.getElementById('hTime').textContent =
+    new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+setInterval(tick,1000); tick();
+
+// ═══════════════════════════════
+// Tab
+// ═══════════════════════════════
+function switchTab(id, btn) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+  if (id==='admin' && !window._chartInited) {
+    initChartReal();
+    buildHeatmapReal();
+  }
+}
+
+// ═══════════════════════════════
+// Supabase config
+// ═══════════════════════════════
+const SB_URL = 'https://ndcdpkkptbyeosgkcvgy.supabase.co';
+const SB_KEY = 'sb_publishable_wS5AkPa-ce-XY-YstP6DRw_wjr8T_ohhLv4Y';
+const TABLE  = 'sensor_readings';
+const STATION = 'ITHALA20-PHUKET-01';
+
+async function sbFetch(query) {
+  const r = await fetch(`${SB_URL}/rest/v1/${query}`, {
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer '+SB_KEY }
+  });
+  if (!r.ok) throw new Error('Supabase '+r.status);
+  return r.json();
+}
+
+// ═══════════════════════════════
+// Sensor state (fallback = mock)
+// ═══════════════════════════════
+const BASE = { temp:34, humi:78, light:48000, rain:2840 };
+let live = {...BASE};
+let history24 = []; // ข้อมูล 24h จริง
+let history7d  = []; // ข้อมูล 7d จริง
+
+function heatIndex(t,r) {
+  const F = t*9/5+32;
+  const H = -42.379+2.04901523*F+10.14333127*r-0.22475541*F*r
+    -0.00683783*F*F-0.05481717*r*r+0.00122874*F*F*r
+    +0.00085282*F*r*r-0.00000199*F*F*r*r;
+  return +((H-32)*5/9).toFixed(1);
+}
+
+function beachScore(t,h,rain,lux) {
+  let s = 100;
+  if (t>36) s -= (t-36)*8; else if (t<28) s -= (28-t)*5;
+  if (h>85) s -= (h-85)*2; else if (h>80) s -= (h-80)*1;
+  if (rain<2000) s -= 40;
+  if (lux<10000) s -= 15;
+  return Math.max(0,Math.min(100,Math.round(s)));
+}
+
+// ── ดึงข้อมูลล่าสุด 1 แถว ──
+async function fetchLatest() {
+  try {
+    const rows = await sbFetch(
+      `${TABLE}?station_id=eq.${encodeURIComponent(STATION)}&order=created_at.desc&limit=1&select=temperature,humidity,light_lux,rain_raw`
+    );
+    if (rows && rows.length > 0) {
+      const r = rows[0];
+      live.temp  = +r.temperature;
+      live.humi  = +r.humidity;
+      live.light = +r.light_lux;
+      live.rain  = +r.rain_raw;
+      secSince = 0;
+    }
+  } catch(e) {
+    console.warn('fetchLatest failed, using mock:', e.message);
+    // fallback: ขยับ mock นิดหน่อย
+    live.temp  = +(BASE.temp+(Math.random()-.5)*1.2).toFixed(1);
+    live.humi  = +Math.max(50,Math.min(99,BASE.humi+(Math.random()-.5)*3)).toFixed(0);
+    live.light = +(BASE.light+(Math.random()-.5)*5000).toFixed(0);
+    live.rain  = BASE.rain;
+  }
+  updateGuest();
+}
+
+// ── ดึง 24h สำหรับกราฟ ──
+async function fetch24h() {
+  try {
+    const since = new Date(Date.now()-24*3600000).toISOString();
+    history24 = await sbFetch(
+      `${TABLE}?station_id=eq.${encodeURIComponent(STATION)}&created_at=gte.${since}&order=created_at.asc&select=created_at,temperature,humidity,rain_raw`
+    );
+  } catch(e) { history24 = []; }
+}
+
+// ── ดึง 7d สำหรับ heatmap ──
+async function fetch7d() {
+  try {
+    const since = new Date(Date.now()-7*24*3600000).toISOString();
+    history7d = await sbFetch(
+      `${TABLE}?station_id=eq.${encodeURIComponent(STATION)}&created_at=gte.${since}&order=created_at.asc&select=created_at,temperature`
+    );
+  } catch(e) { history7d = []; }
+}
+
+// ── Init: โหลดทุกอย่างพร้อมกัน ──
+async function initData() {
+  document.getElementById('hTime').textContent = 'กำลังโหลด...';
+  await Promise.all([fetchLatest(), fetch24h(), fetch7d()]);
+  if (window._chartInited) {
+    initChartReal();
+    buildHeatmapReal();
+  }
+}
+initData();
+setInterval(fetchLatest, 60000); // อัพเดตทุก 1 นาที
+
+function updateGuest() {
+
+  const HI = heatIndex(live.temp,live.humi);
+  const bs  = beachScore(live.temp,live.humi,live.rain,live.light);
+  const isRain = live.rain<2000;
+  const L = T[lang];
+
+  document.getElementById('gTemp').textContent = live.temp;
+  document.getElementById('gHumi').textContent = live.humi;
+  document.getElementById('gLight').textContent = (live.light/1000).toFixed(0);
+  document.getElementById('gHI').textContent   = HI;
+
+  // Rain badge
+  const rb = document.getElementById('gRainBadge');
+  rb.textContent = isRain ? '🌧 '+(lang==='th'?'ฝนกำลังตก':'Rain now') : '✅ '+L.noRain;
+  rb.className = 'badge '+(isRain?'rain':'clear');
+
+  // Temp badge
+  const tb = document.getElementById('gTempBadge');
+  if (live.temp>35)      { tb.textContent='🌡 '+(lang==='th'?'ร้อนมาก':'Very Hot'); tb.className='badge danger'; }
+  else if (live.temp>32) { tb.textContent='🌡 '+L.hot; tb.className='badge hot'; }
+  else                   { tb.textContent='🌡 '+(lang==='th'?'อากาศดี':'Nice'); tb.className='badge clear'; }
+
+  // Hero
+  document.getElementById('gEmoji').textContent = isRain?'🌧':live.temp>34?'🌞':'⛅';
+  document.getElementById('gDesc').textContent  = isRain
+    ? (lang==='th'?'ฝนกำลังตก — เตรียมร่มด้วยนะ':'Rain — grab your umbrella!')
+    : live.temp>34 ? (lang==='th'?`แดดจัด ${live.temp}°C — ร้อนมาก`:`Sunny ${live.temp}°C — Very hot`)
+    : (lang==='th'?`อากาศดี ${live.temp}°C — เหมาะออกเที่ยว`:`Nice ${live.temp}°C — Good for activities`);
+  document.getElementById('gSub').textContent =
+    (lang==='th'?'ความชื้น':'Humidity')+' '+live.humi+'% · '+
+    (lang==='th'?'แสง':'Light')+' '+(live.light/1000).toFixed(0)+' klx · '+(lang==='th'?'ภูเก็ต':'Phuket');
+
+  // Comfort
+  let cl, cc;
+  if (HI<32)      { cl=lang==='th'?'😊 สบาย':'😊 Comfortable'; cc='clear'; }
+  else if(HI<37)  { cl=lang==='th'?'⚠️ ร้อน ดื่มน้ำบ่อยๆ':'⚠️ Hot — drink water'; cc='warn'; }
+  else if(HI<41)  { cl=lang==='th'?L.veryHot:'🔥 '+L.veryHot; cc='hot'; }
+  else            { cl=lang==='th'?'🚨 อันตราย!':'🚨 Danger!'; cc='danger'; }
+  const cb = document.getElementById('gComfortBadge');
+  cb.textContent = cl; cb.className='badge '+cc;
+  const pct = Math.min(100,Math.max(0,(HI-27)/(44-27)*100));
+  document.getElementById('gNeedle').style.left = pct+'%';
+
+  // Beach Score
+  document.getElementById('scorePct').textContent = bs;
+  const stars = bs>=80?'⭐⭐⭐⭐⭐':bs>=65?'⭐⭐⭐⭐':bs>=50?'⭐⭐⭐':bs>=35?'⭐⭐':'⭐';
+  document.getElementById('scoreStars').textContent = stars;
+  const slabel = bs>=80?(lang==='th'?'เหมาะไปชายหาดมาก':'Great for the beach!'):
+                 bs>=65?(lang==='th'?'เหมาะไปชายหาด':'Good for the beach'):
+                 bs>=50?(lang==='th'?'ไปได้ระวังแดดด้วย':'OK — watch the sun'):
+                 (lang==='th'?'ไม่เหมาะ ควรอยู่ในร่ม':'Not ideal — stay indoors');
+  document.getElementById('scoreLabel').textContent = slabel;
+  const rc = document.getElementById('scoreRing');
+  rc.style.borderColor = bs>=65?'var(--ok)':bs>=50?'var(--warn)':'var(--danger)';
+  rc.style.color       = bs>=65?'var(--ok)':bs>=50?'var(--warn)':'var(--danger)';
+  // Factors
+  document.getElementById('sf1').textContent = live.temp<=35?(lang==='th'?'ดี':'Good'):(lang==='th'?'ร้อนเกิน':'Too hot');
+  document.getElementById('sf2').textContent = live.humi<=80?(lang==='th'?'ดี':'Good'):(lang==='th'?'สูงเล็กน้อย':'A bit high');
+  document.getElementById('sf3').textContent = isRain?(lang==='th'?'มีฝน':'Raining'):(lang==='th'?'ไม่มี':'Clear');
+  document.getElementById('sf4').textContent = live.light>=30000?(lang==='th'?'ดี':'Good'):(lang==='th'?'แสงน้อย':'Low light');
+
+  // Timeline
+  buildTimeline();
+  buildForecast();
+  buildActivities(isRain,HI);
+}
+updateGuest(); setInterval(updateGuest,60000);
+
+// ═══════════════════════════════
+// Timeline
+// ═══════════════════════════════
+function buildTimeline() {
+  const wrap = document.getElementById('gTimeline');
+  wrap.innerHTML = '';
+  const now = new Date();
+  const slots = [-4,-3,-2,-1,0,1,2,3];
+  slots.forEach(offset => {
+    const h = new Date(now.getTime()+offset*3600000).getHours();
+    const isNow = offset===0;
+    const rain = (h>=8&&h<=9);
+    const temp = +(32+4*Math.sin((h-6)*Math.PI/12)+(Math.random()-.5)).toFixed(0);
+    const emoji = rain?'🌧':temp>34?'🌞':temp>30?'⛅':'🌤';
+    const d = document.createElement('div');
+    d.className = 'tl-item'+(isNow?' tl-now':'');
+    d.innerHTML = `<div class="tl-time">${String(h).padStart(2,'0')}:00${isNow?'\n▼':''}</div><div class="tl-emoji">${emoji}</div><div class="tl-temp">${temp}°</div>`;
+    wrap.appendChild(d);
+  });
+}
+
+// ═══════════════════════════════
+// 3h Forecast (rule-based)
+// ═══════════════════════════════
+function buildForecast() {
+  const wrap = document.getElementById('gForecast');
+  wrap.innerHTML = '';
+  const now = new Date();
+  const humTrend = live.humi > 82; // rising humidity → possible rain
+  const hours = [1,2,3];
+  hours.forEach(h => {
+    const fh = new Date(now.getTime()+h*3600000);
+    const hHour = fh.getHours();
+    const willRain = humTrend && hHour>=12 && hHour<=15;
+    const ftemp = +(live.temp + (willRain?-1.5:0) + (Math.random()-.5)*0.5).toFixed(0);
+    const emoji = willRain?'🌧':ftemp>34?'🌞':'⛅';
+    const note = willRain?(lang==='th'?'อาจมีฝน':'Rain likely'):(lang==='th'?'แดดต่อเนื่อง':'Sunny');
+    const d = document.createElement('div');
+    d.className = 'fcst-item';
+    d.innerHTML = `<div class="fcst-time">+${h}h (${String(hHour).padStart(2,'0')}:00)</div><div class="fcst-emoji">${emoji}</div><div class="fcst-temp">${ftemp}°C</div><div class="fcst-note">${note}</div>`;
+    wrap.appendChild(d);
+  });
+}
+
+// ═══════════════════════════════
+// Activities
+// ═══════════════════════════════
+function buildActivities(isRain, HI) {
+  const wrap = document.getElementById('gActivities');
+  wrap.innerHTML = '';
+  const L = lang;
+  const acts = [
+    {th:'🏖 ชายหาดช่วงเช้า',en:'🏖 Beach (morning)',ok:!isRain&&live.temp<=36},
+    {th:'🤿 ดำน้ำ / สนอร์เกิล',en:'🤿 Snorkeling',ok:!isRain},
+    {th:'🚴 ปั่นจักรยาน',en:'🚴 Cycling',ok:!isRain&&HI<37,warn:HI>=37},
+    {th:'🥾 เดินป่า',en:'🥾 Hiking',ok:!isRain&&live.humi<80,warn:live.humi>=80},
+    {th:'🏊 ว่ายน้ำในสระ',en:'🏊 Pool swimming',ok:!isRain},
+    {th:'🍜 ทานข้าวนอกสถานที่',en:'🍜 Al fresco dining',ok:!isRain&&live.temp<36},
+    {th:'🧘 โยคะริมสระ',en:'🧘 Poolside yoga',ok:!isRain&&live.humi<85},
+    {th:'🎣 ตกปลา',en:'🎣 Fishing',ok:!isRain},
+  ];
+  acts.forEach(a => {
+    const label = L==='th'?a.th:a.en;
+    const c = document.createElement('span');
+    c.className = 'chip '+(a.ok?'good':a.warn?'warn':'bad');
+    c.textContent = label;
+    wrap.appendChild(c);
+  });
+}
+
+// ═══════════════════════════════
+// QR placeholder
+// ═══════════════════════════════
+(function(){
+  const g = document.getElementById('qrGrid');
+  [1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,0,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1]
+    .forEach(v=>{ const d=document.createElement('div'); d.className='qr-cell'+(v?'':' w'); g.appendChild(d); });
+})();
+
+// ═══════════════════════════════
+// Chart
+// ═══════════════════════════════
+let chart; window._chartInited=false;
+let currentRange=24;
+
+function renderChart(labels,temps,humis,rains){
+  const ctx=document.getElementById('mainChart').getContext('2d');
+  const fg2=getComputedStyle(document.documentElement).getPropertyValue('--fg2').trim()||'#6b7280';
+  const brd=getComputedStyle(document.documentElement).getPropertyValue('--border').trim()||'#e5e7eb';
+  if(chart)chart.destroy();
+  chart=new Chart(ctx,{type:'line',data:{labels,datasets:[
+    {label:'อุณหภูมิ (°C)',data:temps,borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,.08)',tension:.4,pointRadius:2,yAxisID:'y'},
+    {label:'ความชื้น (%)',data:humis,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.08)',tension:.4,pointRadius:2,yAxisID:'y2'},
+    {label:'ฝน',data:rains,borderColor:'#0ea5e9',backgroundColor:'rgba(14,165,233,.2)',type:'bar',yAxisID:'y3',borderRadius:2}
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{labels:{color:fg2,font:{size:12}}}},
+    scales:{
+      x:{ticks:{color:fg2,maxTicksLimit:8,font:{size:11}},grid:{color:brd}},
+      y:{position:'left',ticks:{color:'#ef4444',font:{size:11}},grid:{color:brd},min:25,max:42,title:{display:true,text:'°C',color:'#ef4444'}},
+      y2:{position:'right',ticks:{color:'#3b82f6',font:{size:11}},grid:{display:false},min:50,max:100,title:{display:true,text:'%',color:'#3b82f6'}},
+      y3:{position:'right',display:false,min:0,max:2,grid:{display:false}}
+    }}});
+  window._chartInited=true;
+}
+
+function initChartReal(){
+  const src = currentRange<=24 ? history24 : history7d;
+  if(!src || src.length===0){ initChartMock(currentRange); return; }
+  // downsample ถ้ามีข้อมูลเยอะเกิน
+  const maxPts=80;
+  const step=Math.max(1,Math.floor(src.length/maxPts));
+  const labels=[],temps=[],humis=[],rains=[];
+  for(let i=0;i<src.length;i+=step){
+    const r=src[i];
+    const d=new Date(r.created_at);
+    labels.push(d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}));
+    temps.push(+r.temperature);
+    humis.push(+r.humidity);
+    rains.push(r.rain_raw<2000?1:0);
+  }
+  renderChart(labels,temps,humis,rains);
+}
+
+function initChartMock(h){
+  const labels=[],temps=[],humis=[],rains=[];
+  const now=new Date(); const step=h<=24?1:6;
+  for(let i=h;i>=0;i-=step){
+    const t=new Date(now-i*3600000);
+    labels.push(t.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}));
+    const base=32+4*Math.sin((t.getHours()-6)*Math.PI/12);
+    temps.push(+(base+(Math.random()-.5)*2).toFixed(1));
+    humis.push(+(72+15*Math.sin((t.getHours()-8)*Math.PI/14)+(Math.random()-.5)*5).toFixed(0));
+    rains.push(t.getHours()>=8&&t.getHours()<=9?1:0);
+  }
+  renderChart(labels,temps,humis,rains);
+}
+
+function initChart(h){ initChartMock(h); } // fallback ถ้าเรียกก่อน data มา
+
+async function setRange(h,btn){
+  document.querySelectorAll('.r-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); currentRange=h;
+  if(h===168 && history7d.length===0) await fetch7d();
+  initChartReal();
+}
+
+// ═══════════════════════════════
+// Heatmap
+// ═══════════════════════════════
+function renderHeatmap(grid7x24, dayLabels){
+  // grid7x24[d][h] = อุณหภูมิเฉลี่ยของวัน d ชั่วโมง h (หรือ null)
+  const wrap=document.getElementById('hmap');
+  wrap.innerHTML='';
+  const tooltip=document.getElementById('tooltip');
+  // header
+  const hdr=document.createElement('div');
+  hdr.style.cssText='display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--fg2)';
+  wrap.appendChild(hdr);
+  for(let h=0;h<24;h++){
+    const lbl=document.createElement('div');
+    lbl.className='hmap-label';
+    lbl.textContent=h%4===0?String(h).padStart(2,'0'):'';
+    wrap.appendChild(lbl);
+  }
+  for(let d=0;d<7;d++){
+    const dlbl=document.createElement('div');
+    dlbl.style.cssText='display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--fg2);font-weight:600';
+    dlbl.textContent=dayLabels[d]||'';
+    wrap.appendChild(dlbl);
+    for(let h=0;h<24;h++){
+      const t=grid7x24[d][h]??null;
+      const cell=document.createElement('div');
+      cell.className='hmap-cell';
+      if(t===null){ cell.style.background='var(--border)'; }
+      else {
+        const pct=Math.max(0,Math.min(1,(t-27)/(38-27)));
+        const r=Math.round(59+pct*(239-59));
+        const g=Math.round(130+pct*(68-130));
+        const b=Math.round(246+pct*(68-246));
+        cell.style.background=`rgb(${r},${g},${b})`;
+      }
+      cell.addEventListener('mousemove',ev=>{
+        tooltip.style.display='block';
+        tooltip.style.left=ev.clientX+10+'px';
+        tooltip.style.top=ev.clientY-30+'px';
+        tooltip.textContent=t!==null
+          ?`${dayLabels[d]} ${String(h).padStart(2,'0')}:00 — ${t.toFixed(1)}°C`
+          :`${dayLabels[d]} ${String(h).padStart(2,'0')}:00 — ไม่มีข้อมูล`;
+      });
+      cell.addEventListener('mouseleave',()=>{ tooltip.style.display='none'; });
+      wrap.appendChild(cell);
+    }
+  }
+}
+
+function buildHeatmapReal(){
+  const days=['อา','จ','อ','พ','พฤ','ศ','ส'];
+  if(!history7d || history7d.length===0){ buildHeatmapMock(); return; }
+  // สร้าง grid จากข้อมูลจริง
+  const now=new Date();
+  const grid=Array.from({length:7},()=>Array(24).fill(null));
+  const cnt =Array.from({length:7},()=>Array(24).fill(0));
+  const dayLabels=[];
+  for(let d=0;d<7;d++){
+    const dd=new Date(now-(6-d)*86400000);
+    dayLabels.push(days[dd.getDay()]);
+  }
+  history7d.forEach(row=>{
+    const dt=new Date(row.created_at);
+    const daysAgo=Math.floor((now-dt)/86400000);
+    const d=6-daysAgo;
+    if(d<0||d>6)return;
+    const h=dt.getHours();
+    const t=+row.temperature;
+    grid[d][h]=(grid[d][h]??0)+t;
+    cnt[d][h]++;
+  });
+  for(let d=0;d<7;d++) for(let h=0;h<24;h++)
+    if(cnt[d][h]>0) grid[d][h]=grid[d][h]/cnt[d][h];
+  renderHeatmap(grid,dayLabels);
+}
+
+function buildHeatmapMock(){
+  const days=['อา','จ','อ','พ','พฤ','ศ','ส'];
+  const now=new Date();
+  const dayLabels=[];
+  for(let d=0;d<7;d++){
+    const dd=new Date(now-(6-d)*86400000);
+    dayLabels.push(days[dd.getDay()]);
+  }
+  const grid=Array.from({length:7},(_,d)=>
+    Array.from({length:24},(_,h)=>+(27+8*Math.sin((h-6)*Math.PI/12)+(Math.random()-.5)*2).toFixed(1))
+  );
+  renderHeatmap(grid,dayLabels);
+}
+
+function buildHeatmap(){ buildHeatmapMock(); } // fallback
+
+// ═══════════════════════════════
+// Last update timer
+// ═══════════════════════════════
+let secSince=0;
+setInterval(()=>{
+  secSince++;
+  const el=document.getElementById('lastUpd');
+  if(!el)return;
+  el.textContent=secSince<60?secSince+'s ago':Math.floor(secSince/60)+'m ago';
+  el.className='h-val '+(secSince>70?'warn':'ok');
+},1000);
+document.addEventListener('DOMContentLoaded',()=>{ secSince=0; });
+
+// ═══════════════════════════════
+// Threshold save
+// ═══════════════════════════════
+function saveThresh(){
+  try{
+    localStorage.setItem('thresh',JSON.stringify({
+      temp:+document.getElementById('tTemp').value,
+      humi:+document.getElementById('tHumi').value,
+      rain:+document.getElementById('tRain').value,
+      miss:+document.getElementById('tMiss').value,
+    }));
+  }catch(e){}
+  const s=document.getElementById('threshSaved');
+  s.style.display='inline';
+  showToast(lang==='th'?'✅ บันทึกการตั้งค่าแล้ว':'✅ Settings saved');
+  setTimeout(()=>s.style.display='none',3000);
+}
+(function loadThresh(){
+  try{
+    const v=JSON.parse(localStorage.getItem('thresh')||'null');
+    if(!v)return;
+    document.getElementById('tTemp').value=v.temp;
+    document.getElementById('tHumi').value=v.humi;
+    document.getElementById('tRain').value=v.rain;
+    document.getElementById('tMiss').value=v.miss;
+  }catch(e){}
+})();
+
+// ═══════════════════════════════
+// Export
+// ═══════════════════════════════
+function exportCSV(){
+  const rows=['time,temp_C,humidity_%,rain_raw,heat_index_C'];
+  const now=new Date();
+  for(let i=24;i>=0;i--){
+    const t=new Date(now-i*3600000);
+    const temp=(32+4*Math.sin((t.getHours()-6)*Math.PI/12)+(Math.random()-.5)*2).toFixed(1);
+    const humi=(72+15*Math.sin((t.getHours()-8)*Math.PI/14)).toFixed(0);
+    const rain=t.getHours()>=8&&t.getHours()<=9?1240:2840;
+    rows.push(`${t.toISOString()},${temp},${humi},${rain},${heatIndex(+temp,+humi)}`);
+  }
+  copyText(rows.join('\n'));
+  showToast(lang==='th'?'📋 Copy CSV แล้ว (วาง Excel ได้เลย)':'📋 CSV copied — paste into Excel');
+}
+function exportJSON(){
+  const data={station:'ITHALA20-PHUKET-01',exported:new Date().toISOString(),
+    current:{temp:live.temp,humidity:live.humi,light_lux:live.light,rain_raw:live.rain,
+      heat_index:heatIndex(live.temp,live.humi),beach_score:beachScore(live.temp,live.humi,live.rain,live.light)}};
+  copyText(JSON.stringify(data,null,2));
+  showToast(lang==='th'?'📋 Copy JSON แล้ว':'📋 JSON copied');
+}
+function copyReport(){
+  const bs=beachScore(live.temp,live.humi,live.rain,live.light);
+  const txt=`📊 ITHALA20 Daily Report — ${new Date().toLocaleDateString('th-TH')}
+🌡 Temp: ${live.temp}°C (Max 36°C / Min 27°C)
+💧 Humidity: ${live.humi}% (Avg 74%)
+🌧 Rain: 1 hr (08:00–09:03)
+🏖 Beach Score: ${bs}%
+🤖 Station: ITHALA20-PHUKET-01 | Uptime 99.1%`;
+  copyText(txt);
+  showToast(lang==='th'?'📋 Copy รายงานแล้ว':'📋 Report copied');
+}
+function copyText(t){
+  try{ navigator.clipboard.writeText(t); }
+  catch(e){ const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+}
+
+// ═══════════════════════════════
+// Toast
+// ═══════════════════════════════
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2500);
+}
+</script>
