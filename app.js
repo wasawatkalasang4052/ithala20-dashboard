@@ -470,7 +470,7 @@ async function loadDailySummary() {
     const hums  = rows.map(r => r.humidity);
     const luxs  = rows.map(r => r.light_lux);
     const rains = rows.map(r => r.rain_raw);
-    const rainEvents = rows.filter(r => r.rain_raw < 2000).length;
+    // rainEvents already declared above for rain accumulation bar — reuse it
 
     document.getElementById('daily-cards').innerHTML = [
       { label:'อุณหภูมิเฉลี่ย', val:(temps.reduce((a,b)=>a+b,0)/temps.length).toFixed(1), unit:'°C', color:'#f87171' },
