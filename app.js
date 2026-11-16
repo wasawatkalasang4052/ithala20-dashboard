@@ -92,13 +92,109 @@ const ACTIVITIES = [
 // Charts instances
 const charts = {};
 
-// ── Activity toggle ──
+// ══════════════════════════════════════════
+//  ALERT SETTINGS SAVE / LOAD
+// ══════════════════════════════════════════
+const ALERT_SETTINGS_KEY = 'ithala20-alert-settings';
+
+// ── Activity toggle (visual only until Save) ──
 function toggleActivity(card) {
-  card.classList.toggle('selected');
-  // reset sent count when user re-enables
-  if (card.classList.contains('selected')) {
-    alertSentCount[card.dataset.id] = 0;
+  // If already in pending state → cancel (restore to original state)
+  if (card.classList.contains('pending-select')) {
+    card.classList.remove('pending-select');
+  } else {
+    card.classList.add('pending-select');
   }
+  updateSaveButtonState();
+}
+
+// ── Mark save button if settings changed ──
+function updateSaveButtonState() {
+  const btn = document.getElementById('btn-save-alert');
+  if (!btn) return;
+  btn.style.boxShadow = '0 0 12px rgba(56,189,248,.35)';
+  const hint = document.getElementById('alert-save-hint');
+  if (hint) hint.style.display = 'none';
+}
+
+// ── Save all alert settings to localStorage ──
+function saveAlertSettings() {
+  // Commit pending state:
+  // • card has ONLY pending-select (not selected yet) → add selected
+  // • card has BOTH selected + pending-select → deselect (remove both)
+  document.querySelectorAll('.activity-card.pending-select').forEach(card => {
+    if (card.classList.contains('selected')) {
+      // was selected, user toggled off → deselect
+      card.classList.remove('selected', 'pending-select');
+    } else {
+      // new selection → confirm
+      card.classList.remove('pending-select');
+      card.classList.add('selected');
+      alertSentCount[card.dataset.id] = 0;
+    }
+  });
+
+  const selectedIds = [...document.querySelectorAll('.activity-card.selected')].map(c => c.dataset.id);
+  const cooldown    = document.getElementById('alert-cooldown').value;
+  const repeat      = document.getElementById('alert-repeat').value;
+
+  try {
+    localStorage.setItem(ALERT_SETTINGS_KEY, JSON.stringify({ selectedIds, cooldown, repeat }));
+  } catch(e) {}
+
+  // Visual feedback
+  const btn = document.getElementById('btn-save-alert');
+  if (btn) btn.style.boxShadow = '';
+  const hint = document.getElementById('alert-save-hint');
+  if (hint) { hint.style.display = 'inline'; setTimeout(() => hint.style.display = 'none', 2500); }
+  showToast('บันทึกการตั้งค่าแจ้งเตือนแล้ว ✓', 'ok');
+}
+
+// ── Load saved settings on init ──
+function loadAlertSettings() {
+  try {
+    const raw = localStorage.getItem(ALERT_SETTINGS_KEY);
+    if (!raw) return;
+    const s = JSON.parse(raw);
+
+    // Restore activity cards
+    if (Array.isArray(s.selectedIds)) {
+      document.querySelectorAll('.activity-card').forEach(card => {
+        if (s.selectedIds.includes(card.dataset.id)) {
+          card.classList.add('selected');
+          alertSentCount[card.dataset.id] = 0;
+        }
+      });
+    }
+
+    // Restore cooldown
+    if (s.cooldown) {
+      document.getElementById('alert-cooldown').value = s.cooldown;
+      const matchBtn = document.querySelector(`.preset-btn[data-target="alert-cooldown"][data-val="${s.cooldown}"]`);
+      document.querySelectorAll('.preset-btn[data-target="alert-cooldown"]').forEach(b => b.classList.remove('active'));
+      if (matchBtn) matchBtn.classList.add('active');
+      else {
+        const customBtn = document.getElementById('cooldown-custom-btn');
+        if (customBtn) customBtn.classList.add('active');
+        const wrap = document.getElementById('cooldown-custom-wrap');
+        if (wrap) { wrap.style.display = 'flex'; const inp = document.getElementById('cooldown-custom-input'); if (inp) inp.value = s.cooldown; }
+      }
+    }
+
+    // Restore repeat
+    if (s.repeat !== undefined) {
+      document.getElementById('alert-repeat').value = s.repeat;
+      const matchBtn = document.querySelector(`.preset-btn[data-target="alert-repeat"][data-val="${s.repeat}"]`);
+      document.querySelectorAll('.preset-btn[data-target="alert-repeat"]').forEach(b => b.classList.remove('active'));
+      if (matchBtn) matchBtn.classList.add('active');
+      else {
+        const customBtn = document.getElementById('repeat-custom-btn');
+        if (customBtn) customBtn.classList.add('active');
+        const wrap = document.getElementById('repeat-custom-wrap');
+        if (wrap) { wrap.style.display = 'flex'; const inp = document.getElementById('repeat-custom-input'); if (inp) inp.value = s.repeat; }
+      }
+    }
+  } catch(e) {}
 }
 
 // ── Custom cooldown / repeat ──
@@ -141,6 +237,7 @@ document.addEventListener('click', e => {
   }
 
   document.getElementById(target).value = val;
+  updateSaveButtonState();
 });
 
 function syncSlider(hiddenId, sliderId, val, unit) {
@@ -1287,6 +1384,7 @@ async function init() {
   initRipple();
   checkWebPushStatus();
   loadSavedChatId();
+  loadAlertSettings();
   await loadRealtime();
   loadHeatmap();
 

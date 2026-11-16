@@ -421,8 +421,10 @@
           <input type="hidden" id="alert-repeat" value="0">
         </div>
 
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;align-items:center">
+          <button class="btn-primary" id="btn-save-alert" onclick="saveAlertSettings()">💾 บันทึกการตั้งค่า</button>
           <button class="btn-outline" onclick="testTelegram()">📨 ทดสอบ Telegram</button>
+          <span id="alert-save-hint" style="font-size:.78rem;color:#34d399;display:none">✓ บันทึกแล้ว</span>
         </div>
       </div>
 

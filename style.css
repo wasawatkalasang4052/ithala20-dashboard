@@ -154,6 +154,15 @@ canvas{max-height:260px}
 .activity-status.pending{background:rgba(56,189,248,.1);color:#38bdf8;border:1px solid rgba(56,189,248,.2)}
 /* checkmark overlay when selected */
 .activity-card.selected::after{content:'✓';position:absolute;top:8px;right:10px;font-size:.75rem;color:#38bdf8;font-weight:700}
+/* pending-select: chosen but not yet saved — dashed border + amber tint */
+.activity-card.pending-select{border:2px dashed #fbbf24;background:rgba(251,191,36,.05);box-shadow:0 0 0 2px rgba(251,191,36,.1)}
+.activity-card.pending-select::before{opacity:1}
+.activity-card.pending-select .activity-name{color:#fbbf24}
+.activity-card.pending-select::after{content:'◎';position:absolute;top:8px;right:10px;font-size:.75rem;color:#fbbf24;font-weight:700}
+/* if already selected AND pending (toggle off) → strikethrough state */
+.activity-card.selected.pending-select{border:2px dashed #f8716180;background:rgba(248,113,97,.04)}
+.activity-card.selected.pending-select::after{content:'✕';color:#f87171}
+.activity-card.selected.pending-select .activity-name{color:#f87171}
 
 /* ── Activity Footer ── */
 .activity-footer{margin-top:20px;padding:16px;background:#091020;border:1px solid #1e3a5f;border-radius:12px}
