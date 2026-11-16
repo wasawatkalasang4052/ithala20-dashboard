@@ -3,6 +3,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <style>
 :root {
@@ -95,8 +96,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 
 /* QR */
 .qr-box{display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px;background:var(--surface2);border-radius:8px;text-align:center}
-.qr-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;width:70px}
-.qr-cell{aspect-ratio:1;border-radius:1px;background:var(--fg)}.qr-cell.w{background:var(--surface)}
+#qrCanvas img,#qrCanvas canvas{width:140px!important;height:140px!important;border-radius:6px}
 
 /* Forecast pills */
 .fcst-row{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
@@ -263,7 +263,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   <div class="card" style="margin-top:16px">
     <div class="card-title">📱 <span data-k="shareGuest">แชร์ให้แขก</span></div>
     <div class="qr-box">
-      <div class="qr-grid" id="qrGrid"></div>
+      <div id="qrCanvas"></div>
       <div style="font-size:12px;color:var(--fg2)" data-k="qrSub">สแกน QR เพื่อเปิด Guest Dashboard</div>
       <div style="font-size:11px;background:var(--surface);padding:4px 10px;border-radius:4px;border:1px solid var(--border);font-family:monospace">ithala20.vercel.app/guest</div>
     </div>
@@ -746,12 +746,16 @@ function buildActivities(isRain, HI) {
 }
 
 // ═══════════════════════════════
-// QR placeholder
+// QR Code (real, scannable)
 // ═══════════════════════════════
 (function(){
-  const g = document.getElementById('qrGrid');
-  [1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,0,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1]
-    .forEach(v=>{ const d=document.createElement('div'); d.className='qr-cell'+(v?'':' w'); g.appendChild(d); });
+  const url = window.location.origin || 'https://ithala20-dashboard.vercel.app';
+  new QRCode(document.getElementById('qrCanvas'), {
+    text: url,
+    width: 140, height: 140,
+    colorDark: '#000000', colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
 })();
 
 // ═══════════════════════════════
