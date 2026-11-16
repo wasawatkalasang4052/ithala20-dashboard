@@ -5,8 +5,8 @@
 const SUPABASE_URL  = 'https://ndcdpkkptbyeosgkcvgy.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_wS5AkPa-ce-XY-YstP6DRw_wjr8TU1O';
 const STATION_ID    = 'ITHALA20-PHUKET-01';
-const STATION_LAT   = 7.8804;
-const STATION_LNG   = 98.3923;
+const STATION_LAT   = 8.020556;
+const STATION_LNG   = 98.330139;
 const REFRESH_MS    = 60 * 1000;
 
 // Telegram config
