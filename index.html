@@ -61,12 +61,6 @@
         <div class="card-unit">lux</div>
       </div>
       <div class="card">
-        <div class="card-icon">🔆</div>
-        <div class="card-label">UV Index</div>
-        <div class="card-value" id="val-uv">--</div>
-        <div class="card-unit">raw</div>
-      </div>
-      <div class="card">
         <div class="card-icon">🌧️</div>
         <div class="card-label">สัญญาณฝน</div>
         <div class="card-value" id="val-rain">--</div>
@@ -79,7 +73,7 @@
       <canvas id="chart-temp-hum"></canvas>
     </section>
     <section class="chart-box">
-      <h2>☀️ ความสว่างและ UV (100 ค่าล่าสุด)</h2>
+      <h2>☀️ ความสว่าง (100 ค่าล่าสุด)</h2>
       <canvas id="chart-light"></canvas>
     </section>
     <section class="chart-box">
@@ -140,7 +134,7 @@
           <canvas id="daily-chart-th"></canvas>
         </div>
         <div class="chart-box inner-box" style="margin-top:16px">
-          <h2>☀️ ความสว่างและ UV</h2>
+          <h2>☀️ ความสว่าง</h2>
           <canvas id="daily-chart-uv"></canvas>
         </div>
         <div class="chart-box inner-box" style="margin-top:16px">
@@ -152,7 +146,7 @@
           <h2>📊 ตารางสรุปค่าสถิติประจำวัน</h2>
           <div class="table-wrap">
             <table class="stat-table">
-              <thead><tr><th>พารามิเตอร์</th><th>ค่าต่ำสุด</th><th>ค่าเฉลี่ย</th><th>ค่าสูงสุด</th><th>หน่วย</th></tr></thead>
+              <thead><tr><th>พารามิเตอร์</th><th>ต่ำสุด</th><th>เฉลี่ย</th><th>สูงสุด</th><th>หน่วย</th></tr></thead>
               <tbody id="daily-table-body"></tbody>
             </table>
           </div>
@@ -165,7 +159,7 @@
           </div>
           <div class="table-wrap">
             <table class="stat-table">
-              <thead><tr><th>ชั่วโมง</th><th>อุณหภูมิ (°C)</th><th>ความชื้น (%)</th><th>แสง (lux)</th><th>UV raw</th><th>Rain raw</th><th>สภาพฝน</th></tr></thead>
+              <thead><tr><th>ชั่วโมง</th><th>อุณหภูมิ (°C)</th><th>ความชื้น (%)</th><th>แสง (lux)</th><th>Rain raw</th><th>สภาพฝน</th></tr></thead>
               <tbody id="hourly-table-body"></tbody>
             </table>
           </div>

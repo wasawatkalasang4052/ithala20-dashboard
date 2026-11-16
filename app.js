@@ -121,7 +121,6 @@ async function loadRealtime() {
     document.getElementById('val-temp').textContent = latest.temperature?.toFixed(1) ?? '--';
     document.getElementById('val-hum').textContent  = latest.humidity?.toFixed(1)    ?? '--';
     document.getElementById('val-lux').textContent  = Math.round(latest.light_lux ?? 0);
-    document.getElementById('val-uv').textContent   = latest.uv_raw ?? '--';
     document.getElementById('val-rain').textContent = latest.rain_raw ?? '--';
     document.getElementById('val-rain-status').textContent = isRain ? '🌧 มีฝน' : 'ไม่มีฝน';
 
@@ -160,18 +159,17 @@ async function loadRealtime() {
       options: chartOptions(['อุณหภูมิ (°C)', 'ความชื้น (%)'], true)
     });
 
-    // Chart: Light + UV
+    // Chart: Light
     destroyChart('light');
     charts['light'] = new Chart(document.getElementById('chart-light'), {
       type: 'line',
       data: {
         labels,
         datasets: [
-          { label: 'ความสว่าง (lux)', data: reversed.map(r => r.light_lux), borderColor: '#fbbf24', backgroundColor: 'rgba(251,191,36,.1)', tension: .3, pointRadius: 0, fill: true },
-          { label: 'UV raw', data: reversed.map(r => r.uv_raw), borderColor: '#a78bfa', backgroundColor: 'rgba(167,139,250,.1)', tension: .3, pointRadius: 0, fill: true, yAxisID: 'y2' }
+          { label: 'ความสว่าง (lux)', data: reversed.map(r => r.light_lux), borderColor: '#fbbf24', backgroundColor: 'rgba(251,191,36,.1)', tension: .3, pointRadius: 0, fill: true }
         ]
       },
-      options: chartOptions(['lux', 'UV raw'], true)
+      options: chartOptions(['lux'], false)
     });
 
     // Chart: Rain
@@ -387,11 +385,10 @@ async function loadDailySummary() {
       data:{
         labels,
         datasets:[
-          { label:'แสง (lux)', data:rows.map(r=>r.light_lux), borderColor:'#fbbf24', backgroundColor:'rgba(251,191,36,.1)', tension:.3, pointRadius:0, fill:true },
-          { label:'UV raw',    data:rows.map(r=>r.uv_raw),    borderColor:'#a78bfa', backgroundColor:'rgba(167,139,250,.1)', tension:.3, pointRadius:0, fill:true, yAxisID:'y2' }
+          { label:'แสง (lux)', data:rows.map(r=>r.light_lux), borderColor:'#fbbf24', backgroundColor:'rgba(251,191,36,.1)', tension:.3, pointRadius:0, fill:true }
         ]
       },
-      options: chartOptions(['lux','UV raw'], true)
+      options: chartOptions(['lux'], false)
     });
 
     destroyChart('dailyRain');
@@ -406,7 +403,6 @@ async function loadDailySummary() {
       { name:'อุณหภูมิ', vals:temps, unit:'°C' },
       { name:'ความชื้น',  vals:hums,  unit:'%' },
       { name:'ความสว่าง', vals:luxs,  unit:'lux' },
-      { name:'UV raw',    vals:rows.map(r=>r.uv_raw), unit:'raw' },
       { name:'Rain raw',  vals:rains, unit:'raw' }
     ].map(s => {
       const mn = Math.min(...s.vals), mx = Math.max(...s.vals);
@@ -433,7 +429,6 @@ async function loadDailySummary() {
         <td>${avg('temperature')}</td>
         <td>${avg('humidity')}</td>
         <td>${Math.round(rs.reduce((a,r)=>a+r.light_lux,0)/rs.length)}</td>
-        <td>${Math.round(rs.reduce((a,r)=>a+r.uv_raw,0)/rs.length)}</td>
         <td>${Math.round(rainAvg)}</td>
         <td><span class="badge ${hasRain?'badge-rain':'badge-dry'}">${hasRain?'🌧 ฝน':'แห้ง'}</span></td>
       </tr>`;
@@ -449,9 +444,9 @@ async function loadDailySummary() {
 // ── Export CSV ──
 function exportDailyCSV() {
   if (!dailyData.length) return;
-  const header = 'created_at,temperature,humidity,light_lux,uv_raw,rain_raw';
+  const header = 'created_at,temperature,humidity,light_lux,rain_raw';
   const lines  = dailyData.map(r =>
-    `${r.created_at},${r.temperature},${r.humidity},${r.light_lux},${r.uv_raw},${r.rain_raw}`
+    `${r.created_at},${r.temperature},${r.humidity},${r.light_lux},${r.rain_raw}`
   );
   const blob = new Blob([header + '\n' + lines.join('\n')], { type: 'text/csv' });
   const a = document.createElement('a');
