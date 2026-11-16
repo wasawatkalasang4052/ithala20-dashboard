@@ -1666,9 +1666,9 @@ function updateGuest() {
   const now = new Date();
   const riseMin = 6*60+12, setMin = 18*60+4;
   const nowMin = now.getHours()*60 + now.getMinutes();
-  const pct = Math.max(0, Math.min(100, (nowMin - riseMin)/(setMin - riseMin)*100));
+  const sunPct = Math.max(0, Math.min(100, (nowMin - riseMin)/(setMin - riseMin)*100));
   const sunPin = document.getElementById('gSunPin');
-  if (sunPin) sunPin.style.left = pct + '%';
+  if (sunPin) sunPin.style.left = sunPct + '%';
   const totalMins = setMin - riseMin;
   const h = Math.floor(totalMins/60), m = totalMins%60;
   const dlEl = document.getElementById('gDaylight');
