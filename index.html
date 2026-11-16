@@ -1256,8 +1256,6 @@ let live = {...BASE};
 let history24 = [], history7d = [];
 let lang = 'th';
 let secSince = 0;
-// URL-based routing: no hash → guest, #admin → admin
-const isAdmin = window.location.hash === '#admin';
 let currentMode = '';
 let overviewChart, mainChart;
 
@@ -1270,13 +1268,9 @@ function enterMode(mode) {
   document.getElementById('mode-select').classList.add('hidden');
   if (mode === 'guest') {
     document.body.className = 'guest-mode';
-    // Update URL to root (no hash) so QR always points to guest
-    if (window.location.hash !== '') history.replaceState(null, '', window.location.pathname);
     initQR();
   } else {
     document.body.className = 'admin-mode';
-    // Set hash so admin URL is bookmarkable
-    history.replaceState(null, '', '#admin');
     if (!window._overviewChartInited) {
       setTimeout(() => { buildOverviewChart(); window._overviewChartInited = true; }, 100);
     }
@@ -1289,11 +1283,22 @@ function showModeSelect() {
   ms.classList.add('visible');
 }
 
-// Auto-route on load: skip mode-select entirely
+// Auto-route on load — read hash fresh at fire time
 window.addEventListener('DOMContentLoaded', () => {
-  if (isAdmin) {
+  const h = window.location.hash;
+  if (h === '#admin' || h === '#admin/') {
     enterMode('admin');
   } else {
+    enterMode('guest');
+  }
+});
+
+// Support navigating to #admin after page load
+window.addEventListener('hashchange', () => {
+  const h = window.location.hash;
+  if (h === '#admin' || h === '#admin/') {
+    enterMode('admin');
+  } else if (h === '' || h === '#') {
     enterMode('guest');
   }
 });
