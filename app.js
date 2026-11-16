@@ -1215,11 +1215,27 @@ async function init() {
 
   initSliders();
   initMap();
+  initRipple();
   await loadRealtime();
   loadHeatmap();
 
   setInterval(loadRealtime, REFRESH_MS);
   setInterval(loadHeatmap, 10 * 60 * 1000);
+}
+
+// ── Ripple effect for buttons ──
+function initRipple() {
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.btn-primary,.btn-success,.btn-outline');
+    if (!btn) return;
+    const r = document.createElement('span');
+    r.className = 'ripple';
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    r.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX - rect.left - size/2}px;top:${e.clientY - rect.top - size/2}px`;
+    btn.appendChild(r);
+    r.addEventListener('animationend', () => r.remove());
+  });
 }
 
 init();
