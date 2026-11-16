@@ -148,6 +148,34 @@ canvas{max-height:260px}
 .loading-msg,.empty-msg{text-align:center;padding:40px;color:#334155;font-size:.88rem}
 footer{text-align:center;padding:24px;color:#1e3a5f;font-size:.75rem;border-top:1px solid #0d1526;margin-top:8px}
 
+/* ── Chart grid 2-col ── */
+.chart-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:0}
+@media(max-width:768px){.chart-grid-2{grid-template-columns:1fr}}
+
+/* ── Light Mode ── */
+.light-mode body,.light-mode{background:#f0f4f8;color:#1e293b}
+.light-mode header{background:linear-gradient(135deg,#dbeafe 0%,#e0f2fe 100%);border-bottom-color:#bfdbfe}
+.light-mode header h1{color:#1e293b}
+.light-mode #last-update{color:#4a7fa5}
+.light-mode .status-badge{background:#fff;border-color:#bfdbfe;color:#475569}
+.light-mode .tab-nav{background:#e8f0fb;border-bottom-color:#bfdbfe}
+.light-mode .tab-btn{color:#4a7fa5}
+.light-mode .tab-btn.active{color:#0ea5e9;border-bottom-color:#0ea5e9;background:rgba(14,165,233,.08)}
+.light-mode .card{background:linear-gradient(135deg,#fff 0%,#f0f9ff 100%);border-color:#bfdbfe;color:#1e293b}
+.light-mode .card-label{color:#475569}
+.light-mode .chart-box{background:#fff;border-color:#bfdbfe}
+.light-mode .chart-box h2{color:#334155;border-bottom-color:#e2e8f0}
+.light-mode .sum-card{background:#f8fafc;border-color:#e2e8f0}
+.light-mode .sc-label{color:#475569}
+.light-mode .stat-table th{background:#f1f5f9;color:#334155;border-color:#e2e8f0}
+.light-mode .stat-table td{color:#1e293b;border-color:#e2e8f0}
+.light-mode .stat-table tr:hover td{background:#f0f9ff}
+.light-mode .section-header{border-bottom-color:#e2e8f0}
+.light-mode .loading-msg,.light-mode .empty-msg{color:#94a3b8}
+.light-mode .table-wrap{border-color:#e2e8f0}
+.light-mode footer{color:#94a3b8;border-top-color:#e2e8f0}
+.light-mode #theme-toggle{border-color:rgba(14,165,233,.4);color:#0ea5e9}
+
 /* ── Mobile ── */
 @media(max-width:600px){
   header{padding:14px 16px}

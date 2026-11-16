@@ -30,6 +30,7 @@
       </div>
     </div>
     <div class="header-right">
+      <button id="theme-toggle" onclick="toggleTheme()" title="สลับธีม" style="background:none;border:1px solid rgba(56,189,248,.3);color:#38bdf8;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:1rem;transition:.2s">🌙</button>
       <div class="status-badge" id="status-badge">
         <span class="status-dot" id="status-dot"></span>
         <span id="status-text">กำลังเชื่อมต่อ...</span>
@@ -42,6 +43,7 @@
     <button class="tab-btn" onclick="switchTab('daily',this)">📅 สรุปรายวัน</button>
     <button class="tab-btn" onclick="switchTab('compare',this)">🌍 เปรียบเทียบ</button>
     <button class="tab-btn" onclick="switchTab('trend',this)">📈 Weekly Trend</button>
+    <button class="tab-btn" onclick="switchTab('monthly',this)">📆 Monthly Trend</button>
     <button class="tab-btn" onclick="switchTab('alert',this)">🔔 การแจ้งเตือน</button>
   </nav>
 
@@ -280,7 +282,29 @@
     </section>
   </div><!-- /tab-trend -->
 
-  <!-- ════ TAB 5: ALERT ════ -->
+  <!-- ════ TAB 5: MONTHLY TREND ════ -->
+  <div id="tab-monthly" class="tab-content">
+    <section class="chart-box">
+      <div class="section-header">
+        <h2>📆 แนวโน้ม 30 วัน</h2>
+        <div class="controls-row">
+          <button class="btn-primary" onclick="loadMonthlyTrend()">🔄 รีเฟรช</button>
+        </div>
+      </div>
+      <div id="monthly-loading" class="loading-msg">⏳ กำลังโหลดข้อมูล 30 วัน...</div>
+      <div id="monthly-content" style="display:none">
+        <div class="sum-cards" id="monthly-cards"></div>
+        <div class="chart-grid-2">
+          <section class="chart-box"><h2>🌡️ อุณหภูมิเฉลี่ยรายวัน</h2><canvas id="monthly-chart-temp"></canvas></section>
+          <section class="chart-box"><h2>💧 ความชื้นเฉลี่ยรายวัน</h2><canvas id="monthly-chart-hum"></canvas></section>
+          <section class="chart-box"><h2>🌧️ ปริมาณฝนสะสมรายวัน (mm)</h2><canvas id="monthly-chart-rain"></canvas></section>
+          <section class="chart-box"><h2>🥵 Heat Index เฉลี่ยรายวัน</h2><canvas id="monthly-chart-hi"></canvas></section>
+        </div>
+      </div>
+    </section>
+  </div><!-- /tab-monthly -->
+
+  <!-- ════ TAB 6: ALERT ════ -->
   <div id="tab-alert" class="tab-content">
     <section class="chart-box">
       <h2>🔔 แจ้งเตือนกิจกรรม</h2>

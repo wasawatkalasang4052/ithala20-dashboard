@@ -170,6 +170,22 @@ function initSliders() {
   });
 }
 
+// ── Dark / Light mode toggle ──
+function toggleTheme() {
+  const root = document.documentElement;
+  const btn  = document.getElementById('theme-toggle');
+  const isDark = !root.classList.contains('light-mode');
+  if (isDark) {
+    root.classList.add('light-mode');
+    btn.textContent = '🌞';
+    try { localStorage.setItem('ithala20-theme', 'light'); } catch(e) {}
+  } else {
+    root.classList.remove('light-mode');
+    btn.textContent = '🌙';
+    try { localStorage.setItem('ithala20-theme', 'dark'); } catch(e) {}
+  }
+}
+
 // ── Tab switch ──
 function switchTab(name, btn) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -181,6 +197,7 @@ function switchTab(name, btn) {
     loadCompare();
   }
   if (name === 'trend') loadWeeklyTrend();
+  if (name === 'monthly') loadMonthlyTrend();
 }
 
 function todayStr() {
@@ -1068,6 +1085,103 @@ async function loadWeeklyTrend() {
 }
 
 // ══════════════════════════════════════════
+//  MONTHLY TREND (30 วัน)
+// ══════════════════════════════════════════
+let monthlyLoaded = false;
+
+async function loadMonthlyTrend() {
+  if (monthlyLoaded) return; // โหลดครั้งเดียว ถ้าต้องการ refresh กดปุ่ม
+  monthlyLoaded = false;
+  document.getElementById('monthly-loading').style.display = 'block';
+  document.getElementById('monthly-content').style.display = 'none';
+
+  try {
+    const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
+    const rows = await supaFetch(
+      `sensor_readings?station_id=eq.${STATION_ID}&created_at=gte.${since}&order=created_at.asc&select=created_at,temperature,humidity,light_lux,rain_raw`
+    );
+
+    // Bucket by day (Bangkok time)
+    const byDay = {};
+    rows.forEach(r => {
+      const d   = new Date(r.created_at);
+      const bkk = new Date(d.getTime() + 7 * 3600000);
+      const day = bkk.toISOString().slice(0, 10);
+      if (!byDay[day]) byDay[day] = [];
+      byDay[day].push(r);
+    });
+
+    const days   = Object.keys(byDay).sort().slice(-30);
+    const labels = days.map(d => { const [, m, dd] = d.split('-'); return `${dd}/${m}`; });
+    const avgOf  = (arr, field) => arr.reduce((s, r) => s + (r[field] || 0), 0) / arr.length;
+
+    const temps  = days.map(d => +avgOf(byDay[d], 'temperature').toFixed(1));
+    const hums   = days.map(d => +avgOf(byDay[d], 'humidity').toFixed(1));
+    const rainMm = days.map(d => +(byDay[d].filter(r => r.rain_raw < 2000).length * 0.3).toFixed(1));
+    const hiVals = days.map((d, i) => +calcHeatIndex(temps[i], hums[i]).value.toFixed(1));
+
+    // Summary cards
+    const totalRain = rainMm.reduce((a, b) => a + b, 0).toFixed(1);
+    const maxTemp   = Math.max(...temps).toFixed(1);
+    const minTemp   = Math.min(...temps).toFixed(1);
+    const avgHum    = (hums.reduce((a, b) => a + b, 0) / hums.length).toFixed(1);
+    const rainDays  = rainMm.filter(v => v > 0).length;
+
+    document.getElementById('monthly-cards').innerHTML = [
+      { label:'อุณหภูมิสูงสุด 30 วัน', val: maxTemp,   unit:'°C',  color:'#f87171' },
+      { label:'อุณหภูมิต่ำสุด 30 วัน',  val: minTemp,   unit:'°C',  color:'#38bdf8' },
+      { label:'ความชื้นเฉลี่ย',          val: avgHum,    unit:'%',   color:'#38bdf8' },
+      { label:'ฝนสะสม 30 วัน',          val: totalRain, unit:'mm',  color:'#a78bfa' },
+      { label:'วันที่มีฝน',              val: rainDays,  unit:'วัน', color:'#60a5fa' },
+    ].map(c => `<div class="sum-card"><div class="sc-label">${c.label}</div><div class="sc-val" style="color:${c.color}">${c.val}</div><div class="sc-sub">${c.unit}</div></div>`).join('');
+
+    const mOpts = {
+      responsive: true, animation: false,
+      plugins: { legend: { labels: { color: '#64748b', font: { size: 11 } } } },
+      scales: {
+        x: { ticks: { color: '#334155', maxTicksLimit: 10 }, grid: { color: '#0d1a2e' } },
+        y: { ticks: { color: '#334155' }, grid: { color: '#0d1a2e' } }
+      }
+    };
+
+    destroyChart('monthlyTemp');
+    charts['monthlyTemp'] = new Chart(document.getElementById('monthly-chart-temp'), {
+      type: 'line',
+      data: { labels, datasets: [{ label:'เฉลี่ย (°C)', data:temps, borderColor:'#f87171', backgroundColor:'rgba(248,113,113,.15)', tension:.4, pointRadius:3, fill:true }] },
+      options: mOpts
+    });
+
+    destroyChart('monthlyHum');
+    charts['monthlyHum'] = new Chart(document.getElementById('monthly-chart-hum'), {
+      type: 'line',
+      data: { labels, datasets: [{ label:'เฉลี่ย (%)', data:hums, borderColor:'#38bdf8', backgroundColor:'rgba(56,189,248,.15)', tension:.4, pointRadius:3, fill:true }] },
+      options: mOpts
+    });
+
+    destroyChart('monthlyRain');
+    charts['monthlyRain'] = new Chart(document.getElementById('monthly-chart-rain'), {
+      type: 'bar',
+      data: { labels, datasets: [{ label:'ฝน (mm)', data:rainMm, backgroundColor: rainMm.map(v => v > 0 ? 'rgba(56,189,248,.6)' : 'rgba(30,58,95,.4)'), borderColor:'#38bdf8', borderWidth:1, borderRadius:4 }] },
+      options: mOpts
+    });
+
+    destroyChart('monthlyHI');
+    charts['monthlyHI'] = new Chart(document.getElementById('monthly-chart-hi'), {
+      type: 'line',
+      data: { labels, datasets: [{ label:'Heat Index (°C)', data:hiVals, borderColor:'#f97316', backgroundColor:'rgba(249,115,22,.15)', tension:.4, pointRadius:3, pointBackgroundColor: hiVals.map(v => calcHeatIndex(v, 70).color), fill:true }] },
+      options: mOpts
+    });
+
+    document.getElementById('monthly-loading').style.display = 'none';
+    document.getElementById('monthly-content').style.display = 'block';
+    monthlyLoaded = true;
+
+  } catch (e) {
+    document.getElementById('monthly-loading').textContent = '❌ โหลดข้อมูลไม่สำเร็จ: ' + e.message;
+  }
+}
+
+// ══════════════════════════════════════════
 //  MAP
 // ══════════════════════════════════════════
 function initMap() {
@@ -1085,6 +1199,15 @@ function initMap() {
 //  INIT
 // ══════════════════════════════════════════
 async function init() {
+  // Restore theme
+  try {
+    if (localStorage.getItem('ithala20-theme') === 'light') {
+      document.documentElement.classList.add('light-mode');
+      const btn = document.getElementById('theme-toggle');
+      if (btn) btn.textContent = '🌞';
+    }
+  } catch(e) {}
+
   // Set default dates
   const today = todayStr();
   document.getElementById('daily-date').value   = today;
