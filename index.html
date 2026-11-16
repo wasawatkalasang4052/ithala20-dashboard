@@ -266,17 +266,46 @@
 
       <!-- Cooldown & Actions -->
       <div class="activity-footer">
-        <div class="cooldown-row">
-          <span style="font-size:.82rem;color:#64748b">⏱️ แจ้งเตือนซ้ำทุก</span>
+
+        <!-- Row 1: ความถี่ -->
+        <div class="footer-row">
+          <span class="footer-label">⏱️ แจ้งเตือนซ้ำทุก</span>
           <div class="preset-row" style="margin:0">
             <button class="preset-btn" data-target="alert-cooldown" data-val="15">15 นาที</button>
             <button class="preset-btn active" data-target="alert-cooldown" data-val="30">30 นาที</button>
             <button class="preset-btn" data-target="alert-cooldown" data-val="60">1 ชม.</button>
             <button class="preset-btn" data-target="alert-cooldown" data-val="120">2 ชม.</button>
+            <button class="preset-btn" data-target="alert-cooldown" data-val="custom" id="cooldown-custom-btn">กำหนดเอง</button>
+          </div>
+          <div id="cooldown-custom-wrap" style="display:none;align-items:center;gap:6px">
+            <input type="number" id="cooldown-custom-input" min="1" max="1440" placeholder="นาที"
+              style="width:80px;background:#0a0f1e;border:1px solid #1e3a5f;border-radius:8px;color:#e2e8f0;padding:5px 10px;font-size:.83rem;font-family:'Inter',sans-serif"
+              oninput="applyCustomCooldown(this.value)">
+            <span style="font-size:.78rem;color:#4a7fa5">นาที</span>
           </div>
           <input type="hidden" id="alert-cooldown" value="30">
         </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+
+        <!-- Row 2: จำนวนครั้ง -->
+        <div class="footer-row" style="margin-top:14px">
+          <span class="footer-label">🔁 จำนวนครั้ง</span>
+          <div class="preset-row" style="margin:0">
+            <button class="preset-btn" data-target="alert-repeat" data-val="1">1 ครั้ง</button>
+            <button class="preset-btn" data-target="alert-repeat" data-val="3">3 ครั้ง</button>
+            <button class="preset-btn" data-target="alert-repeat" data-val="5">5 ครั้ง</button>
+            <button class="preset-btn active" data-target="alert-repeat" data-val="0">ซ้ำตลอด</button>
+            <button class="preset-btn" data-target="alert-repeat" data-val="custom" id="repeat-custom-btn">กำหนดเอง</button>
+          </div>
+          <div id="repeat-custom-wrap" style="display:none;align-items:center;gap:6px">
+            <input type="number" id="repeat-custom-input" min="1" max="999" placeholder="ครั้ง"
+              style="width:80px;background:#0a0f1e;border:1px solid #1e3a5f;border-radius:8px;color:#e2e8f0;padding:5px 10px;font-size:.83rem;font-family:'Inter',sans-serif"
+              oninput="applyCustomRepeat(this.value)">
+            <span style="font-size:.78rem;color:#4a7fa5">ครั้ง</span>
+          </div>
+          <input type="hidden" id="alert-repeat" value="0">
+        </div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
           <button class="btn-outline" onclick="testTelegram()">📨 ทดสอบ Telegram</button>
         </div>
       </div>

@@ -17,7 +17,8 @@ const TG_CHAT_ID = '5058237954';
 const OWM_API_KEY = 'demo'; // ใส่ API key จริงที่นี่
 
 // Activity Alert: cooldown tracking per activity id
-const alertLastSent = {};
+const alertLastSent  = {};
+const alertSentCount = {}; // how many times each activity has been sent this session
 
 // Activity definitions — each has: id, icon, name, check(latest) → {ok, desc}
 const ACTIVITIES = [
@@ -94,6 +95,20 @@ const charts = {};
 // ── Activity toggle ──
 function toggleActivity(card) {
   card.classList.toggle('selected');
+  // reset sent count when user re-enables
+  if (card.classList.contains('selected')) {
+    alertSentCount[card.dataset.id] = 0;
+  }
+}
+
+// ── Custom cooldown / repeat ──
+function applyCustomCooldown(val) {
+  const n = parseInt(val);
+  if (n > 0) document.getElementById('alert-cooldown').value = n;
+}
+function applyCustomRepeat(val) {
+  const n = parseInt(val);
+  if (n > 0) document.getElementById('alert-repeat').value = n;
 }
 
 // ── Preset buttons + slider sync ──
@@ -102,24 +117,30 @@ document.addEventListener('click', e => {
   if (!btn) return;
   const target = btn.dataset.target;
   const val    = btn.dataset.val;
-  document.getElementById(target).value = val;
+
   // highlight active
   btn.closest('.preset-row').querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  // sync slider if present
-  const sliderMap = {
-    'alert-temp-val':  ['alert-temp-slider', 'alert-temp-display', '°C'],
-    'alert-rain-val':  ['alert-rain-slider', 'alert-rain-display', ' raw'],
-    'alert-hum-val':   ['alert-hum-slider',  'alert-hum-display',  '%'],
-    'alert-cooldown':  ['alert-cd-slider',   'alert-cd-display',   ' นาที'],
-  };
-  if (sliderMap[target]) {
-    const [sliderId, displayId, unit] = sliderMap[target];
-    const slider = document.getElementById(sliderId);
-    if (slider) { slider.value = val; updateSliderFill(slider); }
-    const disp = document.getElementById(displayId);
-    if (disp) disp.textContent = val + unit;
+
+  // handle "custom" special value — show input box, don't set hidden value yet
+  if (val === 'custom') {
+    const wrapId = target === 'alert-cooldown' ? 'cooldown-custom-wrap' : 'repeat-custom-wrap';
+    const wrap = document.getElementById(wrapId);
+    if (wrap) wrap.style.display = 'flex';
+    return; // wait for user to type
   }
+
+  // hide custom input if switching away
+  if (target === 'alert-cooldown') {
+    const w = document.getElementById('cooldown-custom-wrap');
+    if (w) w.style.display = 'none';
+  }
+  if (target === 'alert-repeat') {
+    const w = document.getElementById('repeat-custom-wrap');
+    if (w) w.style.display = 'none';
+  }
+
+  document.getElementById(target).value = val;
 });
 
 function syncSlider(hiddenId, sliderId, val, unit) {
@@ -819,6 +840,7 @@ function updateActivityStatus(latest) {
 
 async function checkAlerts(latest) {
   const cooldownMs = parseInt(document.getElementById('alert-cooldown')?.value ?? 30) * 60000;
+  const maxRepeat  = parseInt(document.getElementById('alert-repeat')?.value ?? 0); // 0 = ซ้ำตลอด
   const now = Date.now();
   const time = new Date(latest.created_at).toLocaleString('th-TH', { timeZone:'Asia/Bangkok' });
 
@@ -834,19 +856,34 @@ async function checkAlerts(latest) {
     const { ok, desc } = act.check(latest);
     if (!ok) continue;
 
+    // Check repeat limit (0 = unlimited)
+    if (!alertSentCount[act.id]) alertSentCount[act.id] = 0;
+    if (maxRepeat > 0 && alertSentCount[act.id] >= maxRepeat) continue;
+
     // Check cooldown
     if (!alertLastSent[act.id]) alertLastSent[act.id] = 0;
     if (now - alertLastSent[act.id] < cooldownMs) continue;
 
-    alertLastSent[act.id] = now;
+    alertLastSent[act.id]  = now;
+    alertSentCount[act.id] = (alertSentCount[act.id] || 0) + 1;
+
+    const countNote = maxRepeat > 0 ? ` (${alertSentCount[act.id]}/${maxRepeat})` : '';
     const msg =
-      `${act.icon} <b>ITHALA20 — ${act.name}</b>\n\n` +
+      `${act.icon} <b>ITHALA20 — ${act.name}</b>${countNote}\n\n` +
       `✅ อากาศเหมาะสมกับ "${act.name}" แล้ว!\n` +
       `📊 ${desc}\n` +
       `🏠 สถานี: ITHALA20-PHUKET-01\n` +
       `🕐 เวลา: ${time}`;
     await sendTelegram(msg);
-    addAlertHistory(act.icon, act.name, desc, true);
+    addAlertHistory(act.icon, act.name, desc + countNote, true);
+
+    // Auto-deselect when hit limit
+    if (maxRepeat > 0 && alertSentCount[act.id] >= maxRepeat) {
+      const card = document.querySelector(`.activity-card[data-id="${act.id}"]`);
+      if (card) card.classList.remove('selected');
+      const statusEl = document.getElementById(`act-status-${act.id}`);
+      if (statusEl) { statusEl.textContent = `✅ ครบ ${maxRepeat} ครั้งแล้ว`; statusEl.className = 'activity-status pending'; }
+    }
   }
 }
 

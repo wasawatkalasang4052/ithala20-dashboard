@@ -115,7 +115,8 @@ canvas{max-height:260px}
 
 /* ── Activity Footer ── */
 .activity-footer{margin-top:20px;padding:16px;background:#091020;border:1px solid #1e3a5f;border-radius:12px}
-.cooldown-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.footer-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.footer-label{font-size:.82rem;color:#64748b;white-space:nowrap;min-width:120px}
 
 /* ── Alert Settings (legacy kept for toggle) ── */
 .alert-card{background:#091020;border:1px solid #1e3a5f;border-radius:12px;padding:16px}
