@@ -250,6 +250,45 @@ footer{text-align:center;padding:24px;color:#1e3a5f;font-size:.75rem;border-top:
 .light-mode .preset-btn:hover{background:#e8f0fb;border-color:#bfdbfe;color:#334155}
 .light-mode .preset-btn.active{background:rgba(14,165,233,.12);border-color:#0ea5e9;color:#0ea5e9}
 
+/* ── Notify Channel Cards ── */
+.notify-channels{display:flex;flex-direction:column;gap:12px}
+.notify-channel-card{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#091020 0%,#0d1526 100%);border:1px solid #1e3a5f;border-radius:14px;padding:16px 18px;transition:all .22s;flex-wrap:wrap}
+.notify-channel-card:hover{border-color:#38bdf844;box-shadow:0 4px 16px rgba(56,189,248,.08)}
+.ch-icon{font-size:1.8rem;line-height:1;flex-shrink:0;width:40px;text-align:center}
+.ch-info{flex:1;min-width:160px}
+.ch-name{font-size:.9rem;font-weight:600;color:#e2e8f0;margin-bottom:3px}
+.ch-desc{font-size:.75rem;color:#4a7fa5;line-height:1.4}
+.ch-badge{flex-shrink:0;font-size:.72rem;padding:4px 10px;border-radius:20px;font-weight:600}
+.ch-guide-btn,.ch-enable-btn{flex-shrink:0;font-size:.78rem;padding:5px 12px}
+
+/* ── Guide Modal ── */
+.guide-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;animation:fadeIn .2s ease}
+.guide-modal{background:#0d1526;border:1px solid #1e3a5f;border-radius:20px;padding:28px 28px 24px;max-width:520px;width:calc(100% - 40px);max-height:80vh;overflow-y:auto;position:relative;animation:fadeSlideUp .25s ease;box-shadow:0 24px 64px rgba(0,0,0,.6),0 0 0 1px rgba(56,189,248,.1)}
+.guide-close{position:absolute;top:14px;right:16px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);color:#38bdf8;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.guide-close:hover{background:rgba(56,189,248,.2)}
+.guide-modal h3{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;color:#e2e8f0;margin-bottom:16px;padding-right:36px}
+.guide-steps{display:flex;flex-direction:column;gap:14px;margin-top:4px}
+.guide-step{display:flex;gap:14px;align-items:flex-start}
+.step-num{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#38bdf8);color:#0a0f1e;font-size:.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-body{flex:1}
+.step-title{font-size:.88rem;font-weight:600;color:#e2e8f0;margin-bottom:3px}
+.step-desc{font-size:.78rem;color:#64748b;line-height:1.5}
+.step-code{background:#060d1a;border:1px solid #1e3a5f;border-radius:8px;padding:8px 12px;font-family:monospace;font-size:.78rem;color:#38bdf8;margin-top:6px;word-break:break-all;user-select:all}
+.guide-tip{background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);border-radius:10px;padding:10px 14px;font-size:.78rem;color:#fbbf24;margin-top:16px;line-height:1.5}
+.guide-link{display:inline-flex;align-items:center;gap:6px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);border-radius:8px;padding:7px 14px;font-size:.8rem;color:#38bdf8;text-decoration:none;font-weight:600;margin-top:12px;transition:all .18s;cursor:pointer}
+.guide-link:hover{background:rgba(56,189,248,.18);transform:translateY(-1px)}
+
+/* ── Light mode overrides ── */
+.light-mode .notify-channel-card{background:linear-gradient(135deg,#fff 0%,#f0f9ff 100%);border-color:#e2e8f0}
+.light-mode .notify-channel-card:hover{box-shadow:0 4px 16px rgba(14,165,233,.1)}
+.light-mode .ch-name{color:#1e293b}
+.light-mode .ch-desc{color:#64748b}
+.light-mode .guide-modal{background:#fff;border-color:#e2e8f0;box-shadow:0 24px 64px rgba(0,0,0,.2)}
+.light-mode .guide-modal h3{color:#1e293b}
+.light-mode .step-title{color:#1e293b}
+.light-mode .step-desc{color:#64748b}
+.light-mode .step-code{background:#f1f5f9;border-color:#e2e8f0;color:#0ea5e9}
+
 /* ── Mobile ── */
 @media(max-width:600px){
   header{padding:14px 16px}

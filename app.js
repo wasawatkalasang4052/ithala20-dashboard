@@ -1216,11 +1216,205 @@ async function init() {
   initSliders();
   initMap();
   initRipple();
+  checkWebPushStatus();
   await loadRealtime();
   loadHeatmap();
 
   setInterval(loadRealtime, REFRESH_MS);
   setInterval(loadHeatmap, 10 * 60 * 1000);
+}
+
+// ══════════════════════════════════════════
+//  NOTIFICATION CHANNEL GUIDES
+// ══════════════════════════════════════════
+
+const GUIDES = {
+  telegram: {
+    title: '✈️ วิธีตั้งค่า Telegram Bot',
+    steps: [
+      {
+        title: 'ติดตั้ง Telegram',
+        desc: 'ดาวน์โหลด Telegram บนมือถือหรือคอม แล้วสมัครบัญชี'
+      },
+      {
+        title: 'ค้นหา Bot ของสถานี',
+        desc: 'เปิด Telegram แล้วค้นหา <b>@ITHALA20Bot</b> หรือกดลิงก์ด้านล่าง',
+        link: 'https://t.me/ITHALA20Bot',
+        linkLabel: '→ เปิด Telegram Bot'
+      },
+      {
+        title: 'กด Start',
+        desc: 'กดปุ่ม <b>START</b> เพื่อเริ่มรับการแจ้งเตือน ระบบจะส่ง Chat ID ให้อัตโนมัติ',
+        code: '/start'
+      },
+      {
+        title: 'ทดสอบการแจ้งเตือน',
+        desc: 'กลับมาที่ dashboard แล้วกดปุ่ม <b>"ทดสอบ Telegram"</b> เพื่อยืนยันการเชื่อมต่อ'
+      }
+    ],
+    tip: '💡 Bot นี้เชื่อมต่อกับสถานีโดยตรง — ทุกครั้งที่สภาพอากาศเหมาะสมกับกิจกรรมที่เลือก จะได้รับข้อความทันที'
+  },
+
+  webpush: {
+    title: '🔔 วิธีเปิด Web Push Notification',
+    steps: [
+      {
+        title: 'กดปุ่ม "เปิดใช้งาน"',
+        desc: 'กดปุ่ม <b>🔔 เปิดใช้งาน</b> บนการ์ด Web Push แล้วรอ popup จากเบราว์เซอร์'
+      },
+      {
+        title: 'กด "Allow" หรือ "อนุญาต"',
+        desc: 'เบราว์เซอร์จะถามขออนุญาต — กด <b>Allow</b> เพื่อเปิดรับการแจ้งเตือน'
+      },
+      {
+        title: 'บันทึก PWA ลงหน้าจอ (แนะนำ)',
+        desc: 'เพิ่ม ITHALA20 ลงหน้าจอโทรศัพท์เพื่อรับแจ้งเตือนแม้ไม่ได้เปิดเบราว์เซอร์'
+      },
+      {
+        title: 'ตรวจสอบสถานะ',
+        desc: 'หลังอนุญาตแล้ว badge จะเปลี่ยนเป็น <b>✓ เปิดอยู่</b> สีเขียว'
+      }
+    ],
+    tip: '📱 บน iOS Safari: กด Share → "Add to Home Screen" ก่อน แล้วเปิดแอปจาก Home Screen เพื่อรับ push notification'
+  },
+
+  line: {
+    title: '💬 วิธีตั้งค่า LINE Notify',
+    steps: [
+      {
+        title: 'ไปที่ LINE Notify Website',
+        desc: 'เปิด line.me/en/notify แล้ว Login ด้วยบัญชี LINE',
+        link: 'https://notify-bot.line.me/en/',
+        linkLabel: '→ เปิด LINE Notify'
+      },
+      {
+        title: 'สร้าง Access Token',
+        desc: 'กด <b>"Generate access token"</b> → เลือกแชทหรือกลุ่มที่ต้องการรับแจ้งเตือน → Copy token'
+      },
+      {
+        title: 'ใส่ Token ในโค้ด app.js',
+        desc: 'เปิดไฟล์ app.js แล้วเพิ่มตัวแปร LINE_TOKEN ที่หัวไฟล์',
+        code: 'const LINE_TOKEN = "วาง-token-ที่นี่";'
+      },
+      {
+        title: 'เรียกใช้ฟังก์ชัน sendLine()',
+        desc: 'ใช้ฟังก์ชัน sendLine(msg) แทนหรือคู่กับ sendTelegram() ในจุดที่ต้องการแจ้งเตือน'
+      }
+    ],
+    tip: '⚠️ LINE Notify จะปิดให้บริการ 1 เมษายน 2568 — แนะนำใช้ LINE Messaging API แทน หรือใช้ Telegram ซึ่งฟรีตลอด'
+  },
+
+  email: {
+    title: '📧 วิธีตั้งค่าแจ้งเตือนทางอีเมล',
+    steps: [
+      {
+        title: 'สมัคร EmailJS (ฟรี)',
+        desc: 'ไปที่ emailjs.com → สมัคร → เพิ่ม Email Service (Gmail / Outlook)',
+        link: 'https://www.emailjs.com/',
+        linkLabel: '→ เปิด EmailJS'
+      },
+      {
+        title: 'สร้าง Email Template',
+        desc: 'ใน EmailJS Dashboard → Email Templates → New Template → ออกแบบหัวเรื่องและเนื้อหาอีเมล'
+      },
+      {
+        title: 'ใส่ Config ในโค้ด',
+        desc: 'เพิ่มค่า config ที่ต้นไฟล์ app.js',
+        code: 'const EMAILJS_SVC = "service_xxx";\nconst EMAILJS_TPL = "template_xxx";\nconst EMAILJS_KEY = "public_key_xxx";'
+      },
+      {
+        title: 'โหลด EmailJS SDK',
+        desc: 'เพิ่ม script tag ใน index.html ก่อนปิด </head>',
+        code: '<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>'
+      }
+    ],
+    tip: '💡 EmailJS ฟรีสูงสุด 200 อีเมล/เดือน เหมาะสำหรับรายงานสรุปรายวัน ไม่เหมาะแจ้งเตือนแบบ real-time'
+  }
+};
+
+function showGuide(type) {
+  const g = GUIDES[type];
+  if (!g) return;
+  const overlay = document.getElementById('guide-modal-overlay');
+  const content = document.getElementById('guide-modal-content');
+
+  let html = `<h3>${g.title}</h3><div class="guide-steps">`;
+  g.steps.forEach((s, i) => {
+    html += `<div class="guide-step">
+      <div class="step-num">${i + 1}</div>
+      <div class="step-body">
+        <div class="step-title">${s.title}</div>
+        <div class="step-desc">${s.desc}</div>
+        ${s.code ? `<div class="step-code">${s.code.replace(/\n/g,'<br>')}</div>` : ''}
+        ${s.link ? `<a class="guide-link" href="${s.link}" target="_blank" rel="noopener">${s.linkLabel}</a>` : ''}
+      </div>
+    </div>`;
+  });
+  html += `</div>`;
+  if (g.tip) html += `<div class="guide-tip">${g.tip}</div>`;
+
+  content.innerHTML = html;
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeGuide() {
+  document.getElementById('guide-modal-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeGuide(); });
+
+async function enableWebPush() {
+  const badge = document.getElementById('webpush-status-badge');
+  const btn   = document.getElementById('btn-enable-push');
+  if (!('Notification' in window)) {
+    badge.textContent = '✗ ไม่รองรับ';
+    badge.className   = 'ch-badge badge-err';
+    return;
+  }
+  if (Notification.permission === 'granted') {
+    badge.textContent = '✓ เปิดอยู่';
+    badge.className   = 'ch-badge badge-ok';
+    btn.style.display = 'none';
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = '⏳ รอ...';
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    badge.textContent = '✓ เปิดอยู่';
+    badge.className   = 'ch-badge badge-ok';
+    btn.style.display = 'none';
+    // Send a test push
+    new Notification('🌦️ ITHALA20', {
+      body: 'เปิดรับการแจ้งเตือนสำเร็จ!',
+      icon: 'icons/icon-192.png'
+    });
+  } else {
+    badge.textContent = '✗ ถูกบล็อก';
+    badge.className   = 'ch-badge badge-err';
+    btn.textContent   = '🔒 ถูกบล็อก';
+    btn.disabled      = false;
+  }
+}
+
+// Check web push status on load
+function checkWebPushStatus() {
+  if (!('Notification' in window)) return;
+  const badge = document.getElementById('webpush-status-badge');
+  const btn   = document.getElementById('btn-enable-push');
+  if (!badge || !btn) return;
+  if (Notification.permission === 'granted') {
+    badge.textContent = '✓ เปิดอยู่';
+    badge.className   = 'ch-badge badge-ok';
+    btn.style.display = 'none';
+  } else if (Notification.permission === 'denied') {
+    badge.textContent = '✗ ถูกบล็อก';
+    badge.className   = 'ch-badge badge-err';
+    btn.textContent   = '🔒 ถูกบล็อก';
+  }
 }
 
 // ── Ripple effect for buttons ──
