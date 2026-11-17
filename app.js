@@ -503,7 +503,7 @@ async function loadHeatmap() {
           cell.style.background = heatColor(pct);
           cell.title = `${d} ${String(h).padStart(2,'0')}:00 — ${avg.toFixed(1)}°C`;
         } else {
-          cell.style.background = '#0d1526';
+          cell.style.background = 'rgba(255,255,255,0.05)';
           cell.title = `${d} ${String(h).padStart(2,'0')}:00 — ไม่มีข้อมูล`;
         }
         row.appendChild(cell);
@@ -512,7 +512,7 @@ async function loadHeatmap() {
     });
 
     loading.style.display = 'none';
-    wrap.style.display = 'block';
+    wrap.style.cssText = 'display:flex;flex:1;flex-direction:column;min-height:0';
   } catch (e) {
     loading.textContent = '❌ โหลด Heat Map ไม่ได้';
   }
