@@ -50,7 +50,7 @@ html, body {
   background: var(--bg);
   color: var(--text);
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -1064,8 +1064,8 @@ body::before {
 }
 .gauge-big {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.6rem;
-  font-weight: 800;
+  font-size: 1.35rem;
+  font-weight: 700;
   letter-spacing: -.5px;
   line-height: 1;
 }
@@ -1297,9 +1297,16 @@ body::before {
   top: var(--top-h);
   left: 0; right: 0; bottom: 0;
   overflow: hidden;
+  z-index: 1;
+}
+.tab-pane.active {
+  display: block;
   animation: fadeUp .2s ease;
 }
-.tab-pane.active { display: block; }
+
+/* alias for app.js compat — same element may get .tab-content or .active directly */
+.tab-pane.tab-content { display: none; }
+.tab-pane.tab-content.active { display: block; }
 
 /* Base for all page-grid tabs */
 .page-grid {
@@ -1316,12 +1323,13 @@ body::before {
   background: var(--bg-card);
   border: 1px solid var(--border-glow);
   border-radius: 14px;
-  padding: 12px 14px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
   position: relative;
+  font-size: .82rem;
 }
 .pg-card::after {
   content: '';
@@ -1367,9 +1375,9 @@ body::before {
   padding: 10px 8px;
   text-align: center;
 }
-.sc-label { font-size: .58rem; color: var(--text-muted); margin-bottom: 4px; letter-spacing: .3px; }
-.sc-val { font-family: 'Space Grotesk',sans-serif; font-size: 1.2rem; font-weight: 700; line-height: 1; }
-.sc-sub { font-size: .58rem; color: var(--text-muted); margin-top: 2px; }
+.sc-label { font-size: .56rem; color: var(--text-muted); margin-bottom: 3px; letter-spacing: .3px; }
+.sc-val { font-family: 'Space Grotesk',sans-serif; font-size: 1rem; font-weight: 700; line-height: 1; }
+.sc-sub { font-size: .56rem; color: var(--text-muted); margin-top: 2px; }
 
 /* ctrl-row */
 .ctrl-row {
@@ -1410,33 +1418,33 @@ body::before {
 .pg-cmp-temp  { grid-area: cmp-temp; }
 .pg-cmp-hum   { grid-area: cmp-hum; }
 
-/* ════ WEEKLY TREND grid: 2+2+1 layout ════ */
+/* ════ WEEKLY TREND grid: 3col × 2row ════ */
 .page-grid-trend {
   grid-template-columns: 1fr 1fr 1fr;
   grid-template-rows: minmax(0,1fr) minmax(0,1fr);
   grid-template-areas:
-    "info       trend-temp  trend-hum"
-    "trend-rain trend-rain  trend-hi";
+    "tinfo  ttemp  thum"
+    "train  train  thi";
 }
-.pg-trend-info { grid-area: info; }
-.pg-trend-temp { grid-area: trend-temp; }
-.pg-trend-hum  { grid-area: trend-hum; }
-.pg-trend-rain { grid-area: trend-rain; }
-.pg-trend-hi   { grid-area: trend-hi; }
+.pg-trend-info { grid-area: tinfo; }
+.pg-trend-temp { grid-area: ttemp; }
+.pg-trend-hum  { grid-area: thum; }
+.pg-trend-rain { grid-area: train; }
+.pg-trend-hi   { grid-area: thi; }
 
-/* ════ MONTHLY grid: same as weekly ════ */
+/* ════ MONTHLY grid: same layout ════ */
 .page-grid-monthly {
   grid-template-columns: 1fr 1fr 1fr;
   grid-template-rows: minmax(0,1fr) minmax(0,1fr);
   grid-template-areas:
-    "mon-info  mon-temp  mon-hum"
-    "mon-rain  mon-rain  mon-hi";
+    "minfo  mtemp  mhum"
+    "mrain  mrain  mhi";
 }
-.pg-mon-info { grid-area: mon-info; }
-.pg-mon-temp { grid-area: mon-temp; }
-.pg-mon-hum  { grid-area: mon-hum; }
-.pg-mon-rain { grid-area: mon-rain; }
-.pg-mon-hi   { grid-area: mon-hi; }
+.pg-mon-info { grid-area: minfo; }
+.pg-mon-temp { grid-area: mtemp; }
+.pg-mon-hum  { grid-area: mhum; }
+.pg-mon-rain { grid-area: mrain; }
+.pg-mon-hi   { grid-area: mhi; }
 
 /* ════ ALERT grid: 3 panels ════ */
 .page-grid-alert {
@@ -1445,8 +1453,24 @@ body::before {
   grid-template-areas: "tg-setup activities alert-settings";
 }
 .pg-tg-setup       { grid-area: tg-setup; overflow-y: auto; }
-.pg-activities     { grid-area: activities; }
+.pg-activities     { grid-area: activities; overflow-y: auto; }
 .pg-alert-settings { grid-area: alert-settings; overflow-y: auto; }
+
+/* activity grid fills available space */
+.pg-activities .activity-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 0;
+  flex: 1;
+  align-content: start;
+}
+.pg-activities .activity-card {
+  padding: 10px 8px;
+}
+.pg-activities .activity-icon { font-size: 1.4rem; margin-bottom: 5px; }
+.pg-activities .activity-name { font-size: .7rem; }
+.pg-activities .activity-cond { font-size: .56rem; }
 
 /* ════ RESPONSIVE — tablet (900px) ════ */
 @media (max-width: 900px) {
@@ -1467,20 +1491,21 @@ body::before {
       "cmp-temp cmp-hum"
       "cmp-tbl  cmp-tbl";
   }
-  .page-grid-trend,
+  .page-grid-trend {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto minmax(0,1fr) minmax(0,1fr);
+    grid-template-areas:
+      "tinfo  tinfo"
+      "ttemp  thum"
+      "train  thi";
+  }
   .page-grid-monthly {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto minmax(0,1fr) minmax(0,1fr);
     grid-template-areas:
-      "info       info"
-      "trend-temp trend-hum"
-      "trend-rain trend-hi";
-  }
-  .page-grid-monthly {
-    grid-template-areas:
-      "mon-info   mon-info"
-      "mon-temp   mon-hum"
-      "mon-rain   mon-hi";
+      "minfo  minfo"
+      "mtemp  mhum"
+      "mrain  mhi";
   }
   .page-grid-alert {
     grid-template-columns: 1fr 1fr;

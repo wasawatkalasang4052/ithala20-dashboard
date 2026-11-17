@@ -513,8 +513,46 @@
     document.querySelectorAll('.drawer-item').forEach(el => el.classList.remove('active'));
     btn.classList.add('active');
     closeDrawer();
-    switchTab(tab, btn);
+    if (typeof switchTab === 'function') switchTab(tab, btn);
   }
+
+  /* Sync drawer active state with whatever tab app.js shows */
+  function syncDrawerActive() {
+    const panes = document.querySelectorAll('.tab-pane');
+    panes.forEach(pane => {
+      if (pane.classList.contains('active')) {
+        const tabId = pane.id.replace('tab-', '');
+        document.querySelectorAll('.drawer-item').forEach(el => {
+          el.classList.toggle('active', el.dataset.tab === tabId);
+        });
+      }
+    });
+  }
+
+  /* Watch for tab changes driven by app.js */
+  const tabObs = new MutationObserver((mutations) => {
+    syncDrawerActive();
+    /* Trigger chart resize when a tab becomes visible */
+    mutations.forEach(m => {
+      const el = m.target;
+      if (el.classList.contains('active')) {
+        setTimeout(() => {
+          el.querySelectorAll('canvas').forEach(c => {
+            if (c._chartjs || (window.Chart && Chart.getChart(c))) {
+              const chart = Chart.getChart(c);
+              if (chart) chart.resize();
+            }
+          });
+          /* Also dispatch resize event so any chart init waiting for it fires */
+          window.dispatchEvent(new Event('resize'));
+        }, 50);
+      }
+    });
+  });
+  document.querySelectorAll('.tab-pane').forEach(el =>
+    tabObs.observe(el, { attributes: true, attributeFilter: ['class'] })
+  );
+
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
 
   /* ── Gauge updater ── */
