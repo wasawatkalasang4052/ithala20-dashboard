@@ -24,12 +24,11 @@
 
   <!-- ══════ TOP BAR ══════ -->
   <header class="topbar">
-    <div class="topbar-left">
-      <span class="topbar-logo">🌤</span>
-      <div class="topbar-title-wrap">
-        <span class="topbar-title">ITHALA20</span>
-        <span class="topbar-sub" id="last-update">กำลังโหลด...</span>
-      </div>
+    <button class="menu-toggle" id="menu-toggle" onclick="toggleDrawer()" title="เมนู">☰</button>
+    <span class="topbar-logo">🌤</span>
+    <div class="topbar-title-wrap">
+      <span class="topbar-title">ITHALA20</span>
+      <span class="topbar-sub" id="last-update">กำลังโหลด...</span>
     </div>
     <div class="topbar-right">
       <div class="status-pill" id="status-badge">
@@ -39,6 +38,82 @@
       <button id="theme-toggle" onclick="toggleTheme()" class="topbar-btn" title="สลับธีม">🌙</button>
     </div>
   </header>
+
+  <!-- ══════ DRAWER OVERLAY ══════ -->
+  <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+
+  <!-- ══════ DRAWER ══════ -->
+  <nav class="drawer" id="drawer">
+    <div class="drawer-header">
+      <span class="drawer-logo">🌤</span>
+      <div>
+        <div class="drawer-title">ITHALA20</div>
+        <div class="drawer-ver">Smart Weather Station · Phuket</div>
+      </div>
+    </div>
+
+    <div class="drawer-nav">
+      <div class="drawer-section-label">หน้าหลัก</div>
+
+      <button class="drawer-item active" data-tab="realtime" onclick="navTo('realtime',this)">
+        <span class="drawer-icon">📡</span>
+        <span class="drawer-item-text">
+          <span class="drawer-item-name">เรียลไทม์</span>
+          <span class="drawer-item-desc">ค่าปัจจุบัน · กราฟ · แผนที่</span>
+        </span>
+      </button>
+
+      <div class="drawer-section-label" style="margin-top:8px">วิเคราะห์ข้อมูล</div>
+
+      <button class="drawer-item" data-tab="daily" onclick="navTo('daily',this)">
+        <span class="drawer-icon">📅</span>
+        <span class="drawer-item-text">
+          <span class="drawer-item-name">สรุปรายวัน</span>
+          <span class="drawer-item-desc">สถิติ · ตาราง · Export PDF/CSV</span>
+        </span>
+      </button>
+
+      <button class="drawer-item" data-tab="compare" onclick="navTo('compare',this)">
+        <span class="drawer-icon">🌍</span>
+        <span class="drawer-item-text">
+          <span class="drawer-item-name">เปรียบเทียบ OWM</span>
+          <span class="drawer-item-desc">สถานีกับ OpenWeatherMap</span>
+        </span>
+      </button>
+
+      <button class="drawer-item" data-tab="trend" onclick="navTo('trend',this)">
+        <span class="drawer-icon">📈</span>
+        <span class="drawer-item-text">
+          <span class="drawer-item-name">Weekly Trend</span>
+          <span class="drawer-item-desc">แนวโน้ม 7 วันย้อนหลัง</span>
+        </span>
+      </button>
+
+      <button class="drawer-item" data-tab="monthly" onclick="navTo('monthly',this)">
+        <span class="drawer-icon">📆</span>
+        <span class="drawer-item-text">
+          <span class="drawer-item-name">Monthly Trend</span>
+          <span class="drawer-item-desc">แนวโน้ม 30 วันย้อนหลัง</span>
+        </span>
+      </button>
+
+      <div class="drawer-section-label" style="margin-top:8px">การแจ้งเตือน</div>
+
+      <button class="drawer-item" data-tab="alert" onclick="navTo('alert',this)">
+        <span class="drawer-icon">🔔</span>
+        <span class="drawer-item-text">
+          <span class="drawer-item-name">ตั้งค่าแจ้งเตือน</span>
+          <span class="drawer-item-desc">Telegram · กิจกรรม</span>
+        </span>
+      </button>
+    </div>
+
+    <div class="drawer-footer">
+      <strong>ITHALA20 Weather Station</strong>
+      SHT30 · BH1750 · GPIO35 Rain<br>
+      Phuket Rajabhat University
+    </div>
+  </nav>
 
   <!-- ══════ PAGE CONTENT ══════ -->
   <main class="page-main">
@@ -88,7 +163,7 @@
         </div>
       </div>
 
-      <!-- Mini cards row -->
+      <!-- Mini cards -->
       <div class="mini-row">
         <div class="mini-card">
           <span class="mini-icon">🌧️</span>
@@ -159,11 +234,10 @@
           <button class="btn-outline" onclick="exportDailyCSV()" id="btn-export-daily" style="display:none">⬇️ CSV</button>
         </div>
 
-        <!-- Rain accumulation bar -->
         <div id="rain-accum-wrap" style="display:none;margin:16px 0">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
             <span style="font-size:.8rem;color:var(--text-muted)">🌧️ ปริมาณฝนสะสมวันนี้ (ประมาณการ)</span>
-            <span id="rain-accum-mm" style="font-size:1rem;font-weight:700;color:#38bdf8;font-family:'Space Grotesk',sans-serif">-- mm</span>
+            <span id="rain-accum-mm" style="font-size:1rem;font-weight:700;font-family:'Space Grotesk',sans-serif">-- mm</span>
           </div>
           <div style="background:var(--bg-deep);border-radius:8px;height:8px;overflow:hidden">
             <div id="rain-accum-bar" style="height:100%;background:linear-gradient(90deg,#0ea5e9,#38bdf8);border-radius:8px;transition:width .6s;width:0%"></div>
@@ -259,7 +333,7 @@
     <!-- ════ TAB 4: WEEKLY TREND ════ -->
     <div id="tab-trend" class="tab-content">
       <div class="section-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div class="section-header">
           <div class="section-title" style="margin:0">📈 Weekly Trend — 7 วันย้อนหลัง</div>
           <button class="btn-outline" onclick="loadWeeklyTrend()">🔄 รีเฟรช</button>
         </div>
@@ -289,7 +363,7 @@
     <!-- ════ TAB 5: MONTHLY TREND ════ -->
     <div id="tab-monthly" class="tab-content">
       <div class="section-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div class="section-header">
           <div class="section-title" style="margin:0">📆 แนวโน้ม 30 วัน</div>
           <button class="btn-primary" onclick="loadMonthlyTrend()">🔄 รีเฟรช</button>
         </div>
@@ -309,7 +383,6 @@
     <!-- ════ TAB 6: ALERT ════ -->
     <div id="tab-alert" class="tab-content">
 
-      <!-- Telegram Setup -->
       <div class="section-card" id="tg-setup-box">
         <div class="section-title">✈️ ตั้งค่า Telegram</div>
         <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:16px">ใส่ Chat ID เพื่อรับแจ้งเตือนบน Telegram ส่วนตัว</p>
@@ -317,7 +390,7 @@
           <div class="tg-id-wrap">
             <span class="tg-id-icon">✈️</span>
             <input type="text" id="input-tg-chatid" placeholder="เช่น 5058237954"
-              oninput="onChatIdInput()" onfocus="this.style.borderColor='#38bdf8'" onblur="this.style.borderColor='var(--border)'">
+              oninput="onChatIdInput()" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border-glow)'">
             <div class="tg-id-status" id="tg-id-status"></div>
           </div>
           <button class="btn-primary" onclick="saveChatId()">💾 บันทึก</button>
@@ -326,7 +399,6 @@
         <div id="tg-setup-hint" style="margin-top:10px;font-size:.78rem;color:#34d399;display:none">✓ บันทึกแล้ว — การแจ้งเตือนจะส่งมาที่ Telegram ของคุณ</div>
       </div>
 
-      <!-- Activity Cards -->
       <div class="section-card">
         <div class="section-title">🔔 แจ้งเตือนกิจกรรม</div>
         <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:16px">เลือกกิจกรรมที่ต้องการ — ระบบแจ้งเตือน Telegram เมื่ออากาศเหมาะสม</p>
@@ -385,7 +457,6 @@
             </div>
             <input type="hidden" id="alert-cooldown" value="30">
           </div>
-
           <div class="footer-row" style="margin-top:12px">
             <span class="footer-label">🔁 จำนวนครั้ง</span>
             <div class="preset-row">
@@ -401,7 +472,6 @@
             </div>
             <input type="hidden" id="alert-repeat" value="0">
           </div>
-
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center">
             <button class="btn-primary" id="btn-save-alert" onclick="saveAlertSettings()">💾 บันทึกการตั้งค่า</button>
             <button class="btn-outline" onclick="testTelegram()">📨 ทดสอบ Telegram</button>
@@ -411,7 +481,6 @@
         <div id="alert-result" style="display:none;margin-top:12px;padding:12px 16px;border-radius:10px;font-size:.88rem"></div>
       </div>
 
-      <!-- Channel info -->
       <div class="section-card">
         <div class="section-title">📡 ช่องทางการแจ้งเตือน</div>
         <div class="notify-channels">
@@ -439,53 +508,51 @@
 
   </main>
 
-  <!-- ══════ BOTTOM NAV ══════ -->
-  <nav class="bottom-nav">
-    <button class="nav-btn active" onclick="switchTab('realtime',this)" data-tab="realtime">
-      <span class="nav-icon">📡</span>
-      <span class="nav-label">เรียลไทม์</span>
-    </button>
-    <button class="nav-btn" onclick="switchTab('daily',this)" data-tab="daily">
-      <span class="nav-icon">📅</span>
-      <span class="nav-label">รายวัน</span>
-    </button>
-    <button class="nav-btn" onclick="switchTab('compare',this)" data-tab="compare">
-      <span class="nav-icon">🌍</span>
-      <span class="nav-label">เปรียบเทียบ</span>
-    </button>
-    <button class="nav-btn" onclick="switchTab('trend',this)" data-tab="trend">
-      <span class="nav-icon">📈</span>
-      <span class="nav-label">Weekly</span>
-    </button>
-    <button class="nav-btn" onclick="switchTab('monthly',this)" data-tab="monthly">
-      <span class="nav-icon">📆</span>
-      <span class="nav-label">Monthly</span>
-    </button>
-    <button class="nav-btn" onclick="switchTab('alert',this)" data-tab="alert">
-      <span class="nav-icon">🔔</span>
-      <span class="nav-label">แจ้งเตือน</span>
-    </button>
-  </nav>
-
   <script src="app.js"></script>
   <script>
+    /* ── Service Worker ── */
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
 
-    // Update gauge arcs when data loads — hook into existing updateUI
+    /* ── Drawer ── */
+    const drawer        = document.getElementById('drawer');
+    const drawerOverlay = document.getElementById('drawer-overlay');
+    const menuToggle    = document.getElementById('menu-toggle');
+
+    function toggleDrawer() {
+      const open = drawer.classList.toggle('open');
+      drawerOverlay.classList.toggle('open', open);
+      menuToggle.classList.toggle('open', open);
+    }
+    function closeDrawer() {
+      drawer.classList.remove('open');
+      drawerOverlay.classList.remove('open');
+      menuToggle.classList.remove('open');
+    }
+
+    /* ── Nav (drawer → tabs) ── */
+    function navTo(tab, btn) {
+      // Update active drawer item
+      document.querySelectorAll('.drawer-item').forEach(el => el.classList.remove('active'));
+      btn.classList.add('active');
+      closeDrawer();
+      // Delegate to app.js switchTab
+      switchTab(tab, btn);
+    }
+
+    /* ── Gauge arc updater ── */
     function updateGaugeArc(id, value, min, max) {
       const arc = document.getElementById(id);
       if (!arc) return;
       const pct = Math.min(1, Math.max(0, (value - min) / (max - min)));
       const circumference = 251.2;
-      const trackOffset = 62.8; // 75% of circle visible
+      const trackOffset = 62.8;
       const fillLength = pct * (circumference - trackOffset);
       arc.style.strokeDashoffset = circumference - fillLength;
     }
 
-    // Patch val-temp/hum/lux observers for gauge
-    const _origGetElementById = document.getElementById.bind(document);
+    /* ── MutationObserver: update gauge when val changes ── */
     const gaugeObserver = new MutationObserver(() => {
       const t = parseFloat(document.getElementById('val-temp')?.textContent);
       const h = parseFloat(document.getElementById('val-hum')?.textContent);
@@ -498,6 +565,9 @@
       const el = document.getElementById(id);
       if (el) gaugeObserver.observe(el, { childList: true, subtree: true, characterData: true });
     });
+
+    /* ── Keyboard ESC closes drawer ── */
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
   </script>
 </body>
 </html>
