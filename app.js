@@ -354,7 +354,7 @@ async function loadRealtime() {
     document.getElementById('val-hi').textContent = hi.value.toFixed(1);
     document.getElementById('val-hi').style.color = hi.color;
     const hiLevelEl = document.getElementById('val-hi-level');
-    hiLevelEl.innerHTML = `°C · ${hi.label}<br><span style="font-size:.65rem;color:#64748b;font-weight:400">${hi.sub}</span>`;
+    hiLevelEl.innerHTML = `°C · ${hi.label}<br><span style="font-size:.65rem;color:#7ea8c8;font-weight:400">${hi.sub}</span>`;
 
     // Check alerts
     checkAlerts(latest);
@@ -422,7 +422,7 @@ function chartOptions(yLabels, dualAxis) {
       x: {
         type: 'time',
         time: { tooltipFormat: 'HH:mm', displayFormats: { minute: 'HH:mm', hour: 'HH:mm' } },
-        ticks: { color: '#64748b', maxTicksLimit: 8 },
+        ticks: { color: '#7ea8c8', maxTicksLimit: 8 },
         grid: { color: '#0d1a2e' }
       },
       y: {
@@ -593,7 +593,7 @@ async function loadDailySummary() {
       { label:'อุณหภูมิเฉลี่ย', val:(temps.reduce((a,b)=>a+b,0)/temps.length).toFixed(1), unit:'°C', color:'#f87171' },
       { label:'ความชื้นเฉลี่ย',  val:(hums.reduce((a,b)=>a+b,0)/hums.length).toFixed(1),  unit:'%',  color:'#38bdf8' },
       { label:'แสงสูงสุด',       val:Math.round(Math.max(...luxs)), unit:'lux', color:'#fbbf24' },
-      { label:'ตรวจพบฝน',        val:rainEvents, unit:'ครั้ง', color:rainEvents?'#38bdf8':'#64748b' },
+      { label:'ตรวจพบฝน',        val:rainEvents, unit:'ครั้ง', color:rainEvents?'#38bdf8':'#4a6a88' },
       { label:'จำนวนบันทึก',     val:rows.length, unit:'ครั้ง', color:'#a78bfa' }
     ].map(c => `<div class="sum-card"><div class="sc-label">${c.label}</div><div class="sc-val" style="color:${c.color}">${c.val}</div><div class="sc-sub">${c.unit}</div></div>`).join('');
 
@@ -908,7 +908,7 @@ async function loadCompare() {
           { label:'OpenWeatherMap', data:owmTemps,     borderColor:'#fbbf24', backgroundColor:'rgba(251,191,36,.1)',  tension:.3, pointRadius:3, borderDash:[5,3] }
         ]
       },
-      options: { responsive:true, maintainAspectRatio:false, animation:false, plugins:{ legend:{ labels:{ color:'#94a3b8', font:{size:11} } } }, scales:{ x:{ ticks:{color:'#64748b'}, grid:{color:'#0d1a2e'} }, y:{ ticks:{color:'#64748b'}, grid:{color:'#0d1a2e'} } } }
+      options: { responsive:true, maintainAspectRatio:false, animation:false, plugins:{ legend:{ labels:{ color:'#94a3b8', font:{size:11} } } }, scales:{ x:{ ticks:{color:'#7ea8c8'}, grid:{color:'#0d1a2e'} }, y:{ ticks:{color:'#7ea8c8'}, grid:{color:'#0d1a2e'} } } }
     });
 
     destroyChart('compHum');
@@ -921,7 +921,7 @@ async function loadCompare() {
           { label:'OpenWeatherMap', data:owmHums,     borderColor:'#fbbf24', backgroundColor:'rgba(251,191,36,.1)',  tension:.3, pointRadius:3, borderDash:[5,3] }
         ]
       },
-      options: { responsive:true, maintainAspectRatio:false, animation:false, plugins:{ legend:{ labels:{ color:'#94a3b8', font:{size:11} } } }, scales:{ x:{ ticks:{color:'#64748b'}, grid:{color:'#0d1a2e'} }, y:{ ticks:{color:'#64748b'}, grid:{color:'#0d1a2e'} } } }
+      options: { responsive:true, maintainAspectRatio:false, animation:false, plugins:{ legend:{ labels:{ color:'#94a3b8', font:{size:11} } } }, scales:{ x:{ ticks:{color:'#7ea8c8'}, grid:{color:'#0d1a2e'} }, y:{ ticks:{color:'#7ea8c8'}, grid:{color:'#0d1a2e'} } } }
     });
 
     // Table
@@ -1217,8 +1217,8 @@ async function loadWeeklyTrend() {
       responsive: true, maintainAspectRatio: false, animation: false,
       plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
       scales: {
-        x: { ticks: { color: '#64748b' }, grid: { color: '#0d1a2e' } },
-        y: { ticks: { color: '#64748b' }, grid: { color: '#0d1a2e' } }
+        x: { ticks: { color: '#7ea8c8' }, grid: { color: '#0d1a2e' } },
+        y: { ticks: { color: '#7ea8c8' }, grid: { color: '#0d1a2e' } }
       }
     });
 
@@ -1246,7 +1246,7 @@ async function loadWeeklyTrend() {
       data: { labels, datasets: [
         { label: 'ฝนสะสม (mm)', data: rainMm, backgroundColor: rainMm.map(v => v > 0 ? 'rgba(56,189,248,.6)' : 'rgba(30,58,95,.4)'), borderColor: '#38bdf8', borderWidth: 1, borderRadius: 6 },
       ]},
-      options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } }, scales: { x: { ticks: { color: '#64748b' }, grid: { color: '#0d1a2e' } }, y: { ticks: { color: '#64748b' }, grid: { color: '#0d1a2e' } } } }
+      options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } }, scales: { x: { ticks: { color: '#7ea8c8' }, grid: { color: '#0d1a2e' } }, y: { ticks: { color: '#7ea8c8' }, grid: { color: '#0d1a2e' } } } }
     });
 
     destroyChart('trendHI');
@@ -1337,8 +1337,8 @@ async function loadMonthlyTrend() {
       responsive: true, maintainAspectRatio: false, animation: false,
       plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
       scales: {
-        x: { ticks: { color: '#64748b', maxTicksLimit: 10 }, grid: { color: '#0d1a2e' } },
-        y: { ticks: { color: '#64748b' }, grid: { color: '#0d1a2e' } }
+        x: { ticks: { color: '#7ea8c8', maxTicksLimit: 10 }, grid: { color: '#0d1a2e' } },
+        y: { ticks: { color: '#7ea8c8' }, grid: { color: '#0d1a2e' } }
       }
     };
 
