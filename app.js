@@ -1176,6 +1176,14 @@ async function loadWeeklyTrend() {
     });
 
     const days = Object.keys(byDay).sort().slice(-7);
+
+    if (days.length === 0) {
+      const el = document.getElementById('trend-loading');
+      el.style.display = 'block';
+      el.innerHTML = '⚠️ ไม่มีข้อมูลใน 7 วันที่ผ่านมา';
+      return;
+    }
+
     const labels = days.map(d => {
       const [, m, dd] = d.split('-');
       return `${dd}/${m}`;
@@ -1261,7 +1269,10 @@ async function loadWeeklyTrend() {
     });
 
   } catch (e) {
-    document.getElementById('trend-loading').textContent = '❌ โหลดข้อมูลไม่สำเร็จ: ' + e.message;
+    const el = document.getElementById('trend-loading');
+    el.style.display = 'block';
+    el.innerHTML = `❌ โหลดไม่สำเร็จ: ${e.message}`;
+    console.error('[trend]', e);
   }
 }
 
@@ -1291,7 +1302,16 @@ async function loadMonthlyTrend() {
       byDay[day].push(r);
     });
 
-    const days   = Object.keys(byDay).sort().slice(-30);
+    const days = Object.keys(byDay).sort().slice(-30);
+
+    if (days.length === 0) {
+      const el = document.getElementById('monthly-loading');
+      el.style.display = 'block';
+      el.innerHTML = '⚠️ ไม่มีข้อมูลใน 30 วันที่ผ่านมา';
+      monthlyLoaded = false; // allow retry
+      return;
+    }
+
     const labels = days.map(d => { const [, m, dd] = d.split('-'); return `${dd}/${m}`; });
     const avgOf  = (arr, field) => arr.reduce((s, r) => s + (r[field] || 0), 0) / arr.length;
 
@@ -1364,7 +1384,10 @@ async function loadMonthlyTrend() {
     });
 
   } catch (e) {
-    document.getElementById('monthly-loading').textContent = '❌ โหลดข้อมูลไม่สำเร็จ: ' + e.message;
+    const el = document.getElementById('monthly-loading');
+    el.style.display = 'block';
+    el.innerHTML = `❌ โหลดไม่สำเร็จ: ${e.message}`;
+    console.error('[monthly]', e);
   }
 }
 
