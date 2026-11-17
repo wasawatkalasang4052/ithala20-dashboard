@@ -411,6 +411,7 @@ async function loadRealtime() {
 function chartOptions(yLabels, dualAxis) {
   const base = {
     responsive: true,
+    maintainAspectRatio: false,
     animation: false,
     interaction: { mode: 'index', intersect: false },
     plugins: {
@@ -906,7 +907,7 @@ async function loadCompare() {
           { label:'OpenWeatherMap', data:owmTemps,     borderColor:'#fbbf24', backgroundColor:'rgba(251,191,36,.1)',  tension:.3, pointRadius:3, borderDash:[5,3] }
         ]
       },
-      options: { responsive:true, animation:false, plugins:{ legend:{ labels:{ color:'#64748b', font:{size:11} } } }, scales:{ x:{ ticks:{color:'#334155'}, grid:{color:'#0d1a2e'} }, y:{ ticks:{color:'#334155'}, grid:{color:'#0d1a2e'} } } }
+      options: { responsive:true, maintainAspectRatio:false, animation:false, plugins:{ legend:{ labels:{ color:'#64748b', font:{size:11} } } }, scales:{ x:{ ticks:{color:'#334155'}, grid:{color:'#0d1a2e'} }, y:{ ticks:{color:'#334155'}, grid:{color:'#0d1a2e'} } } }
     });
 
     destroyChart('compHum');
@@ -919,7 +920,7 @@ async function loadCompare() {
           { label:'OpenWeatherMap', data:owmHums,     borderColor:'#fbbf24', backgroundColor:'rgba(251,191,36,.1)',  tension:.3, pointRadius:3, borderDash:[5,3] }
         ]
       },
-      options: { responsive:true, animation:false, plugins:{ legend:{ labels:{ color:'#64748b', font:{size:11} } } }, scales:{ x:{ ticks:{color:'#334155'}, grid:{color:'#0d1a2e'} }, y:{ ticks:{color:'#334155'}, grid:{color:'#0d1a2e'} } } }
+      options: { responsive:true, maintainAspectRatio:false, animation:false, plugins:{ legend:{ labels:{ color:'#64748b', font:{size:11} } } }, scales:{ x:{ ticks:{color:'#334155'}, grid:{color:'#0d1a2e'} }, y:{ ticks:{color:'#334155'}, grid:{color:'#0d1a2e'} } } }
     });
 
     // Table
@@ -1205,7 +1206,7 @@ async function loadWeeklyTrend() {
 
     // Chart helper
     const lineOpts = (color, label2, color2) => ({
-      responsive: true, animation: false,
+      responsive: true, maintainAspectRatio: false, animation: false,
       plugins: { legend: { labels: { color: '#64748b', font: { size: 11 } } } },
       scales: {
         x: { ticks: { color: '#334155' }, grid: { color: '#0d1a2e' } },
@@ -1237,7 +1238,7 @@ async function loadWeeklyTrend() {
       data: { labels, datasets: [
         { label: 'ฝนสะสม (mm)', data: rainMm, backgroundColor: rainMm.map(v => v > 0 ? 'rgba(56,189,248,.6)' : 'rgba(30,58,95,.4)'), borderColor: '#38bdf8', borderWidth: 1, borderRadius: 6 },
       ]},
-      options: { responsive: true, animation: false, plugins: { legend: { labels: { color: '#64748b', font: { size: 11 } } } }, scales: { x: { ticks: { color: '#334155' }, grid: { color: '#0d1a2e' } }, y: { ticks: { color: '#334155' }, grid: { color: '#0d1a2e' } } } }
+      options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { labels: { color: '#64748b', font: { size: 11 } } } }, scales: { x: { ticks: { color: '#334155' }, grid: { color: '#0d1a2e' } }, y: { ticks: { color: '#334155' }, grid: { color: '#0d1a2e' } } } }
     });
 
     destroyChart('trendHI');
@@ -1315,7 +1316,7 @@ async function loadMonthlyTrend() {
     ].map(c => `<div class="sum-card"><div class="sc-label">${c.label}</div><div class="sc-val" style="color:${c.color}">${c.val}</div><div class="sc-sub">${c.unit}</div></div>`).join('');
 
     const mOpts = {
-      responsive: true, animation: false,
+      responsive: true, maintainAspectRatio: false, animation: false,
       plugins: { legend: { labels: { color: '#64748b', font: { size: 11 } } } },
       scales: {
         x: { ticks: { color: '#334155', maxTicksLimit: 10 }, grid: { color: '#0d1a2e' } },

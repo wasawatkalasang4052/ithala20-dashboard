@@ -1343,10 +1343,12 @@ body::before {
   flex: 1;
   min-height: 0;
   position: relative;
+  /* ต้องมี height จริงๆ ให้ Chart.js วัดได้ — ใช้ min-height เป็น fallback */
+  min-height: 160px;
 }
 .chart-inner canvas {
-  position: absolute !important;
-  inset: 0;
+  /* ไม่ใช้ position:absolute — Chart.js responsive mode ต้องการ parent ที่มี height ก่อน */
+  display: block !important;
   width: 100% !important;
   height: 100% !important;
   max-height: none !important;
