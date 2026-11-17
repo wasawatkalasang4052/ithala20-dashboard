@@ -271,15 +271,15 @@ function initSliders() {
 function toggleTheme() {
   const root = document.documentElement;
   const btn  = document.getElementById('theme-toggle');
-  const isDark = !root.classList.contains('light-mode');
-  if (isDark) {
-    root.classList.add('light-mode');
-    btn.textContent = '🌞';
-    try { localStorage.setItem('ithala20-theme', 'light'); } catch(e) {}
-  } else {
-    root.classList.remove('light-mode');
+  const isLight = root.getAttribute('data-theme') === 'light';
+  if (isLight) {
+    root.removeAttribute('data-theme');
     btn.textContent = '🌙';
     try { localStorage.setItem('ithala20-theme', 'dark'); } catch(e) {}
+  } else {
+    root.setAttribute('data-theme', 'light');
+    btn.textContent = '☀️';
+    try { localStorage.setItem('ithala20-theme', 'light'); } catch(e) {}
   }
 }
 
@@ -1409,9 +1409,9 @@ async function init() {
   // Restore theme
   try {
     if (localStorage.getItem('ithala20-theme') === 'light') {
-      document.documentElement.classList.add('light-mode');
+      document.documentElement.setAttribute('data-theme', 'light');
       const btn = document.getElementById('theme-toggle');
-      if (btn) btn.textContent = '🌞';
+      if (btn) btn.textContent = '☀️';
     }
   } catch(e) {}
 
