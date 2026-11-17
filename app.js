@@ -285,7 +285,7 @@ function toggleTheme() {
 
 // ── Tab switch ──
 function switchTab(name, btn) {
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   btn.classList.add('active');
@@ -837,21 +837,28 @@ async function loadCompare() {
 
     // Load OWM historical data
     let owmHourly = {};
+    let owmLoadOk = false;
     if (OWM_API_KEY !== 'demo') {
-      const dateTs  = new Date(dateVal + 'T00:00:00+07:00').getTime() / 1000;
-      const owmRes  = await fetch(
-        `https://api.openweathermap.org/data/3.0/onecall/timemachine?lat=${STATION_LAT}&lon=${STATION_LNG}&dt=${dateTs}&appid=${OWM_API_KEY}&units=metric`
-      );
-      if (owmRes.ok) {
-        const owmData = await owmRes.json();
-        (owmData.data || owmData.hourly || []).forEach(item => {
-          const d = new Date(item.dt * 1000);
-          const bkk = new Date(d.getTime() + 7*3600000);
-          const h = bkk.getUTCHours();
-          owmHourly[h] = { temp: item.temp, humidity: item.humidity };
-        });
-      }
-    } else {
+      try {
+        const dateTs  = new Date(dateVal + 'T00:00:00+07:00').getTime() / 1000;
+        // ใช้ 2.5 (free tier) แทน 3.0 (paid) เพื่อ compatibility
+        const owmRes  = await fetch(
+          `https://api.openweathermap.org/data/2.5/onecall/timemachine?lat=${STATION_LAT}&lon=${STATION_LNG}&dt=${dateTs}&appid=${OWM_API_KEY}&units=metric`
+        );
+        if (owmRes.ok) {
+          const owmData = await owmRes.json();
+          (owmData.hourly || owmData.data || []).forEach(item => {
+            const d = new Date(item.dt * 1000);
+            const bkk = new Date(d.getTime() + 7*3600000);
+            const h = bkk.getUTCHours();
+            owmHourly[h] = { temp: item.temp, humidity: item.humidity };
+          });
+          owmLoadOk = Object.keys(owmHourly).length > 0;
+        }
+      } catch(e) { /* network error — fall through to synthetic */ }
+    }
+    // ถ้า OWM ไม่ตอบสนองหรือ key ไม่ valid → ใช้ synthetic data เพื่อให้ charts ไม่ว่างเปล่า
+    if (!owmLoadOk) {
       // Demo: generate synthetic OWM data close to station
       Object.keys(stationHourly).forEach(h => {
         const rs = stationHourly[h];
@@ -885,7 +892,7 @@ async function loadCompare() {
       { label:'ค่าเฉลี่ยต่างอุณหภูมิ', val:avgTempDiff.toFixed(2), unit:'°C', color: avgTempDiff < 1 ? '#34d399' : avgTempDiff < 2 ? '#fbbf24' : '#f87171' },
       { label:'ค่าเฉลี่ยต่างความชื้น',  val:avgHumDiff.toFixed(1),  unit:'%',  color: avgHumDiff < 5 ? '#34d399' : avgHumDiff < 10 ? '#fbbf24' : '#f87171' },
       { label:'ชั่วโมงเปรียบเทียบ',     val:hours.length, unit:'ชั่วโมง', color:'#38bdf8' },
-      { label:'แหล่งข้อมูล OWM',        val: OWM_API_KEY==='demo'?'Demo':'Live', unit:'OpenWeatherMap', color: OWM_API_KEY==='demo'?'#fbbf24':'#34d399' }
+      { label:'แหล่งข้อมูล OWM',        val: (!owmLoadOk||OWM_API_KEY==='demo')?'Synthetic':'Live', unit:'OpenWeatherMap', color: (!owmLoadOk||OWM_API_KEY==='demo')?'#fbbf24':'#34d399' }
     ].map(c => `<div class="sum-card"><div class="sc-label">${c.label}</div><div class="sc-val" style="color:${c.color}">${c.val}</div><div class="sc-sub">${c.unit}</div></div>`).join('');
 
     // Charts
@@ -1245,6 +1252,13 @@ async function loadWeeklyTrend() {
     document.getElementById('trend-loading').style.display = 'none';
     document.getElementById('trend-content').style.display = 'block';
 
+    // Force resize after content visible (canvas ใน hidden tab อาจยัง 0×0 ตอน create)
+    requestAnimationFrame(() => {
+      ['trendTemp','trendHum','trendRain','trendHI'].forEach(k => {
+        if (charts[k]) charts[k].resize();
+      });
+    });
+
   } catch (e) {
     document.getElementById('trend-loading').textContent = '❌ โหลดข้อมูลไม่สำเร็จ: ' + e.message;
   }
@@ -1257,7 +1271,6 @@ let monthlyLoaded = false;
 
 async function loadMonthlyTrend() {
   if (monthlyLoaded) return; // โหลดครั้งเดียว ถ้าต้องการ refresh กดปุ่ม
-  monthlyLoaded = false;
   document.getElementById('monthly-loading').style.display = 'block';
   document.getElementById('monthly-content').style.display = 'none';
 
@@ -1341,6 +1354,13 @@ async function loadMonthlyTrend() {
     document.getElementById('monthly-loading').style.display = 'none';
     document.getElementById('monthly-content').style.display = 'block';
     monthlyLoaded = true;
+
+    // Force resize after content visible
+    requestAnimationFrame(() => {
+      ['monthlyTemp','monthlyHum','monthlyRain','monthlyHI'].forEach(k => {
+        if (charts[k]) charts[k].resize();
+      });
+    });
 
   } catch (e) {
     document.getElementById('monthly-loading').textContent = '❌ โหลดข้อมูลไม่สำเร็จ: ' + e.message;
