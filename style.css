@@ -1336,6 +1336,7 @@ body::before {
   position: absolute;
   top: 0; left: 15%; right: 15%; height: 1px;
   background: linear-gradient(90deg,transparent,rgba(0,212,255,.12),transparent);
+  pointer-events: none; /* ไม่ block click events ของ child elements */
 }
 
 /* chart-inner fills remaining space inside a pg-card */
@@ -1458,21 +1459,50 @@ body::before {
 .pg-activities     { grid-area: activities; overflow-y: auto; }
 .pg-alert-settings { grid-area: alert-settings; overflow-y: auto; }
 
-/* activity grid fills available space */
+/* activity grid — แนวตั้ง 1 column */
+.pg-activities {
+  overflow-y: auto;
+  /* ยกเลิก overflow:hidden ของ pg-card เพื่อให้ click ผ่านได้ */
+  overflow-x: hidden;
+}
 .pg-activities .activity-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   margin-bottom: 0;
-  flex: 1;
-  align-content: start;
 }
 .pg-activities .activity-card {
-  padding: 10px 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  text-align: left;
+  /* ให้แน่ใจว่า pointer events ทำงาน */
+  pointer-events: auto;
+  position: relative;
+  z-index: 1;
 }
-.pg-activities .activity-icon { font-size: 1.4rem; margin-bottom: 5px; }
-.pg-activities .activity-name { font-size: .7rem; }
-.pg-activities .activity-cond { font-size: .56rem; }
+.pg-activities .activity-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0;
+  flex-shrink: 0;
+  width: 2rem;
+  text-align: center;
+}
+.pg-activities .activity-name { font-size: .75rem; font-weight: 600; }
+.pg-activities .activity-cond { font-size: .6rem; }
+.pg-activities .activity-card .activity-name,
+.pg-activities .activity-card .activity-cond,
+.pg-activities .activity-card .activity-status {
+  display: block;
+}
+.pg-activities .activity-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 
 /* ════ RESPONSIVE — tablet (900px) ════ */
 @media (max-width: 900px) {
