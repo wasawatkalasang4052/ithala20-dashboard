@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="ITHALA20">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -22,552 +22,465 @@
 </head>
 <body>
 
-  <!-- ══════ TOP BAR ══════ -->
-  <header class="topbar">
-    <span class="topbar-logo">🌤</span>
-    <div class="topbar-title-wrap">
-      <span class="topbar-title">ITHALA20</span>
-      <span class="topbar-sub" id="last-update">กำลังโหลด...</span>
+<!-- ══════════════════════════════════
+     TOP BAR
+══════════════════════════════════ -->
+<header class="topbar">
+  <div class="tb-left">
+    <span class="tb-logo">🌤</span>
+    <div>
+      <span class="tb-title">ITHALA20</span>
+      <span class="tb-sub">Smart Weather Station · Phuket</span>
     </div>
-    <div class="topbar-right">
-      <div class="status-pill" id="status-badge">
-        <span class="status-dot" id="status-dot"></span>
-        <span id="status-text">กำลังเชื่อมต่อ...</span>
-      </div>
-      <button id="theme-toggle" onclick="toggleTheme()" class="topbar-btn" title="สลับธีม">🌙</button>
-      <button class="menu-toggle" id="menu-toggle" onclick="toggleDrawer()" title="เมนู">☰</button>
+  </div>
+  <div class="tb-mid">
+    <span class="tb-update-label">อัปเดตล่าสุด</span>
+    <span class="tb-update-time" id="last-update">--</span>
+  </div>
+  <div class="tb-right">
+    <div class="status-pill" id="status-badge">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="status-text">กำลังเชื่อมต่อ</span>
     </div>
-  </header>
+    <button onclick="toggleTheme()" class="tb-btn" id="theme-toggle" title="สลับธีม">🌙</button>
+    <button class="tb-btn tb-menu-btn" id="menu-toggle" onclick="toggleDrawer()">☰</button>
+  </div>
+</header>
 
-  <!-- ══════ DRAWER OVERLAY ══════ -->
-  <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<!-- ══════════════════════════════════
+     DRAWER OVERLAY + DRAWER
+══════════════════════════════════ -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<nav class="drawer" id="drawer">
+  <div class="drawer-header">
+    <span class="drawer-logo">🌤</span>
+    <div>
+      <div class="drawer-title">ITHALA20</div>
+      <div class="drawer-ver">SHT30 · BH1750 · GPIO35</div>
+    </div>
+  </div>
+  <div class="drawer-nav">
+    <div class="drawer-section-label">หน้าหลัก</div>
+    <button class="drawer-item active" data-tab="realtime" onclick="navTo('realtime',this)">
+      <span class="drawer-icon">📡</span>
+      <span class="drawer-item-text">
+        <span class="drawer-item-name">เรียลไทม์</span>
+        <span class="drawer-item-desc">ค่าปัจจุบัน · กราฟ · แผนที่</span>
+      </span>
+    </button>
+    <div class="drawer-section-label">วิเคราะห์ข้อมูล</div>
+    <button class="drawer-item" data-tab="daily" onclick="navTo('daily',this)">
+      <span class="drawer-icon">📅</span>
+      <span class="drawer-item-text">
+        <span class="drawer-item-name">สรุปรายวัน</span>
+        <span class="drawer-item-desc">สถิติ · ตาราง · Export PDF/CSV</span>
+      </span>
+    </button>
+    <button class="drawer-item" data-tab="compare" onclick="navTo('compare',this)">
+      <span class="drawer-icon">🌍</span>
+      <span class="drawer-item-text">
+        <span class="drawer-item-name">เปรียบเทียบ OWM</span>
+        <span class="drawer-item-desc">สถานีกับ OpenWeatherMap</span>
+      </span>
+    </button>
+    <button class="drawer-item" data-tab="trend" onclick="navTo('trend',this)">
+      <span class="drawer-icon">📈</span>
+      <span class="drawer-item-text">
+        <span class="drawer-item-name">Weekly Trend</span>
+        <span class="drawer-item-desc">แนวโน้ม 7 วันย้อนหลัง</span>
+      </span>
+    </button>
+    <button class="drawer-item" data-tab="monthly" onclick="navTo('monthly',this)">
+      <span class="drawer-icon">📆</span>
+      <span class="drawer-item-text">
+        <span class="drawer-item-name">Monthly Trend</span>
+        <span class="drawer-item-desc">แนวโน้ม 30 วันย้อนหลัง</span>
+      </span>
+    </button>
+    <div class="drawer-section-label">การแจ้งเตือน</div>
+    <button class="drawer-item" data-tab="alert" onclick="navTo('alert',this)">
+      <span class="drawer-icon">🔔</span>
+      <span class="drawer-item-text">
+        <span class="drawer-item-name">ตั้งค่าแจ้งเตือน</span>
+        <span class="drawer-item-desc">Telegram · กิจกรรม</span>
+      </span>
+    </button>
+  </div>
+  <div class="drawer-footer">
+    <strong>ITHALA20 Weather Station</strong>
+    Phuket Rajabhat University
+  </div>
+</nav>
 
-  <!-- ══════ DRAWER ══════ -->
-  <nav class="drawer" id="drawer">
-    <div class="drawer-header">
-      <span class="drawer-logo">🌤</span>
-      <div>
-        <div class="drawer-title">ITHALA20</div>
-        <div class="drawer-ver">Smart Weather Station · Phuket</div>
+<!-- ══════════════════════════════════
+     TAB: REALTIME (dashboard grid)
+══════════════════════════════════ -->
+<div id="tab-realtime" class="tab-content active">
+  <div class="dash-grid">
+
+    <!-- TEMP card -->
+    <div class="dash-card card-temp">
+      <div class="card-label">อุณหภูมิ</div>
+      <div class="gauge-wrap">
+        <svg class="gauge-svg" viewBox="0 0 120 120">
+          <circle class="gauge-track" cx="60" cy="60" r="50" stroke-dasharray="251.2" stroke-dashoffset="62.8"/>
+          <circle class="gauge-fill temp-fill" id="gauge-temp-arc" cx="60" cy="60" r="50" stroke-dasharray="251.2" stroke-dashoffset="251.2"/>
+        </svg>
+        <div class="gauge-center">
+          <div class="gauge-big" id="val-temp">--</div>
+          <div class="gauge-unit-big">°C</div>
+        </div>
+      </div>
+      <div class="card-meta-row">
+        <div class="card-meta"><span class="meta-l">รู้สึก</span><span class="meta-v" id="val-hi">--</span></div>
+        <div class="card-meta"><span class="meta-l">ระดับ</span><span class="meta-v" id="val-hi-level">--</span></div>
       </div>
     </div>
 
-    <div class="drawer-nav">
-      <div class="drawer-section-label">หน้าหลัก</div>
-
-      <button class="drawer-item active" data-tab="realtime" onclick="navTo('realtime',this)">
-        <span class="drawer-icon">📡</span>
-        <span class="drawer-item-text">
-          <span class="drawer-item-name">เรียลไทม์</span>
-          <span class="drawer-item-desc">ค่าปัจจุบัน · กราฟ · แผนที่</span>
-        </span>
-      </button>
-
-      <div class="drawer-section-label" style="margin-top:8px">วิเคราะห์ข้อมูล</div>
-
-      <button class="drawer-item" data-tab="daily" onclick="navTo('daily',this)">
-        <span class="drawer-icon">📅</span>
-        <span class="drawer-item-text">
-          <span class="drawer-item-name">สรุปรายวัน</span>
-          <span class="drawer-item-desc">สถิติ · ตาราง · Export PDF/CSV</span>
-        </span>
-      </button>
-
-      <button class="drawer-item" data-tab="compare" onclick="navTo('compare',this)">
-        <span class="drawer-icon">🌍</span>
-        <span class="drawer-item-text">
-          <span class="drawer-item-name">เปรียบเทียบ OWM</span>
-          <span class="drawer-item-desc">สถานีกับ OpenWeatherMap</span>
-        </span>
-      </button>
-
-      <button class="drawer-item" data-tab="trend" onclick="navTo('trend',this)">
-        <span class="drawer-icon">📈</span>
-        <span class="drawer-item-text">
-          <span class="drawer-item-name">Weekly Trend</span>
-          <span class="drawer-item-desc">แนวโน้ม 7 วันย้อนหลัง</span>
-        </span>
-      </button>
-
-      <button class="drawer-item" data-tab="monthly" onclick="navTo('monthly',this)">
-        <span class="drawer-icon">📆</span>
-        <span class="drawer-item-text">
-          <span class="drawer-item-name">Monthly Trend</span>
-          <span class="drawer-item-desc">แนวโน้ม 30 วันย้อนหลัง</span>
-        </span>
-      </button>
-
-      <div class="drawer-section-label" style="margin-top:8px">การแจ้งเตือน</div>
-
-      <button class="drawer-item" data-tab="alert" onclick="navTo('alert',this)">
-        <span class="drawer-icon">🔔</span>
-        <span class="drawer-item-text">
-          <span class="drawer-item-name">ตั้งค่าแจ้งเตือน</span>
-          <span class="drawer-item-desc">Telegram · กิจกรรม</span>
-        </span>
-      </button>
+    <!-- HUM card -->
+    <div class="dash-card card-hum">
+      <div class="card-label">ความชื้น</div>
+      <div class="gauge-wrap">
+        <svg class="gauge-svg" viewBox="0 0 120 120">
+          <circle class="gauge-track" cx="60" cy="60" r="50" stroke-dasharray="251.2" stroke-dashoffset="62.8"/>
+          <circle class="gauge-fill hum-fill" id="gauge-hum-arc" cx="60" cy="60" r="50" stroke-dasharray="251.2" stroke-dashoffset="251.2"/>
+        </svg>
+        <div class="gauge-center">
+          <div class="gauge-big" id="val-hum">--</div>
+          <div class="gauge-unit-big">%</div>
+        </div>
+      </div>
+      <div class="card-meta-row">
+        <div class="card-meta"><span class="meta-l">SHT30</span><span class="meta-v" style="color:var(--accent3)">●</span></div>
+      </div>
     </div>
 
-    <div class="drawer-footer">
-      <strong>ITHALA20 Weather Station</strong>
-      SHT30 · BH1750 · GPIO35 Rain<br>
-      Phuket Rajabhat University
+    <!-- LIGHT card -->
+    <div class="dash-card card-lux">
+      <div class="card-label">ความสว่าง</div>
+      <div class="gauge-wrap">
+        <svg class="gauge-svg" viewBox="0 0 120 120">
+          <circle class="gauge-track" cx="60" cy="60" r="50" stroke-dasharray="251.2" stroke-dashoffset="62.8"/>
+          <circle class="gauge-fill lux-fill" id="gauge-lux-arc" cx="60" cy="60" r="50" stroke-dasharray="251.2" stroke-dashoffset="251.2"/>
+        </svg>
+        <div class="gauge-center">
+          <div class="gauge-big" id="val-lux">--</div>
+          <div class="gauge-unit-big">lux</div>
+        </div>
+      </div>
+      <div class="card-meta-row">
+        <div class="card-meta"><span class="meta-l">BH1750</span><span class="meta-v" style="color:var(--lux-color)">●</span></div>
+      </div>
     </div>
-  </nav>
 
-  <!-- ══════ PAGE CONTENT ══════ -->
-  <main class="page-main">
-
-    <!-- ════ TAB 1: REALTIME ════ -->
-    <div id="tab-realtime" class="tab-content active">
-
-      <!-- Gauge row -->
-      <div class="gauge-row">
-        <div class="gauge-card">
-          <svg class="gauge-svg" viewBox="0 0 120 120">
-            <circle class="gauge-track" cx="60" cy="60" r="50" stroke-dasharray="251.2" stroke-dashoffset="62.8"/>
-            <circle class="gauge-fill temp-fill" id="gauge-temp-arc" cx="60" cy="60" r="50" stroke-dasharray="251.2" stroke-dashoffset="251.2"/>
-          </svg>
-          <div class="gauge-center">
-            <div class="gauge-icon">🌡️</div>
-            <div class="gauge-value" id="val-temp">--</div>
-            <div class="gauge-unit">°C</div>
-          </div>
-          <div class="gauge-label">อุณหภูมิ</div>
-        </div>
-
-        <div class="gauge-card">
-          <svg class="gauge-svg" viewBox="0 0 120 120">
-            <circle class="gauge-track" cx="60" cy="60" r="50" stroke-dasharray="251.2" stroke-dashoffset="62.8"/>
-            <circle class="gauge-fill hum-fill" id="gauge-hum-arc" cx="60" cy="60" r="50" stroke-dasharray="251.2" stroke-dashoffset="251.2"/>
-          </svg>
-          <div class="gauge-center">
-            <div class="gauge-icon">💧</div>
-            <div class="gauge-value" id="val-hum">--</div>
-            <div class="gauge-unit">%</div>
-          </div>
-          <div class="gauge-label">ความชื้น</div>
-        </div>
-
-        <div class="gauge-card">
-          <svg class="gauge-svg" viewBox="0 0 120 120">
-            <circle class="gauge-track" cx="60" cy="60" r="50" stroke-dasharray="251.2" stroke-dashoffset="62.8"/>
-            <circle class="gauge-fill lux-fill" id="gauge-lux-arc" cx="60" cy="60" r="50" stroke-dasharray="251.2" stroke-dashoffset="251.2"/>
-          </svg>
-          <div class="gauge-center">
-            <div class="gauge-icon">☀️</div>
-            <div class="gauge-value" id="val-lux">--</div>
-            <div class="gauge-unit">lux</div>
-          </div>
-          <div class="gauge-label">ความสว่าง</div>
-        </div>
+    <!-- RAIN card -->
+    <div class="dash-card card-rain">
+      <div class="card-label">สัญญาณฝน</div>
+      <div class="rain-display">
+        <div class="rain-icon-big">🌧️</div>
+        <div class="rain-val-big"><span id="val-rain">--</span></div>
+        <div class="rain-status-badge" id="val-rain-status">--</div>
       </div>
-
-      <!-- Mini cards -->
-      <div class="mini-row">
-        <div class="mini-card">
-          <span class="mini-icon">🌧️</span>
-          <div>
-            <div class="mini-label">สัญญาณฝน</div>
-            <div class="mini-val"><span id="val-rain">--</span> <span class="mini-unit" id="val-rain-status">raw</span></div>
-          </div>
+      <div class="rain-bar-wrap">
+        <div class="rain-bar-track">
+          <div class="rain-bar-fill" id="rain-bar"></div>
         </div>
-        <div class="mini-card">
-          <span class="mini-icon">🥵</span>
-          <div>
-            <div class="mini-label">ความร้อนสัมผัส</div>
-            <div class="mini-val"><span id="val-hi">--</span> <span class="mini-unit" id="val-hi-level">°C</span></div>
+        <div class="rain-bar-labels"><span>แห้ง</span><span>ชื้น</span><span>ฝนตก</span></div>
+      </div>
+    </div>
+
+    <!-- REALTIME CHART card -->
+    <div class="dash-card card-chart-th">
+      <div class="card-label">อุณหภูมิ &amp; ความชื้น <span class="card-label-sub">100 ค่าล่าสุด</span></div>
+      <canvas id="chart-temp-hum"></canvas>
+    </div>
+
+    <!-- LIGHT CHART card -->
+    <div class="dash-card card-chart-lux">
+      <div class="card-label">ความสว่าง <span class="card-label-sub">100 ค่าล่าสุด</span></div>
+      <canvas id="chart-light"></canvas>
+    </div>
+
+    <!-- RAIN CHART card -->
+    <div class="dash-card card-chart-rain">
+      <div class="card-label">สัญญาณฝน <span class="card-label-sub">100 ค่าล่าสุด</span></div>
+      <canvas id="chart-rain"></canvas>
+    </div>
+
+    <!-- HEATMAP card -->
+    <div class="dash-card card-heatmap">
+      <div class="card-label">Heat Map อุณหภูมิรายชั่วโมง <span class="card-label-sub">7 วันล่าสุด</span></div>
+      <div id="heatmap-container">
+        <div id="heatmap-loading" class="card-loading">⏳ กำลังโหลด...</div>
+        <div id="heatmap-wrap" style="display:none">
+          <div class="heatmap-labels-top" id="heatmap-hours"></div>
+          <div class="heatmap-grid" id="heatmap-grid"></div>
+          <div class="heatmap-legend">
+            <span>เย็น</span><div class="legend-bar"></div><span>ร้อน</span>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Charts -->
-      <div class="section-card">
-        <div class="section-title">🌡️ อุณหภูมิและความชื้น <span class="section-sub">100 ค่าล่าสุด</span></div>
-        <canvas id="chart-temp-hum"></canvas>
-      </div>
-      <div class="section-card">
-        <div class="section-title">☀️ ความสว่าง <span class="section-sub">100 ค่าล่าสุด</span></div>
-        <canvas id="chart-light"></canvas>
-      </div>
-      <div class="section-card">
-        <div class="section-title">🌧️ สัญญาณฝน <span class="section-sub">100 ค่าล่าสุด</span></div>
-        <canvas id="chart-rain"></canvas>
-      </div>
+    <!-- MAP card -->
+    <div class="dash-card card-map">
+      <div class="card-label">📍 ตำแหน่งสถานี</div>
+      <div id="map"></div>
+    </div>
 
-      <!-- Heatmap -->
-      <div class="section-card">
-        <div class="section-title">🗓️ Heat Map อุณหภูมิรายชั่วโมง <span class="section-sub">7 วันล่าสุด</span></div>
-        <div id="heatmap-container">
-          <div id="heatmap-loading" class="loading-msg">⏳ กำลังโหลด Heat Map...</div>
-          <div id="heatmap-wrap" style="display:none">
-            <div class="heatmap-labels-top" id="heatmap-hours"></div>
-            <div class="heatmap-grid" id="heatmap-grid"></div>
-            <div class="heatmap-legend">
-              <span>เย็น</span>
-              <div class="legend-bar"></div>
-              <span>ร้อน</span>
-            </div>
-          </div>
+  </div><!-- /dash-grid -->
+</div>
+
+<!-- ════ TAB 2: DAILY ════ -->
+<div id="tab-daily" class="tab-content scroll-tab">
+  <div class="page-inner">
+    <div class="section-card">
+      <div class="section-title">📅 สรุปข้อมูลรายวัน</div>
+      <div class="controls-row">
+        <div class="date-wrap"><span>📅</span><input type="date" id="daily-date" onchange="loadDailySummary()"></div>
+        <button class="btn-primary" onclick="loadDailySummary()">โหลด</button>
+        <button class="btn-success" onclick="exportPDF()" id="btn-pdf" style="display:none">📄 PDF</button>
+        <button class="btn-outline" onclick="exportDailyCSV()" id="btn-export-daily" style="display:none">⬇️ CSV</button>
+      </div>
+      <div id="rain-accum-wrap" style="display:none;margin:16px 0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:.8rem;color:var(--text-muted)">🌧️ ปริมาณฝนสะสมวันนี้ (ประมาณการ)</span>
+          <span id="rain-accum-mm" style="font-size:1rem;font-weight:700;font-family:'Space Grotesk',sans-serif;color:var(--accent)">-- mm</span>
         </div>
-      </div>
-
-      <!-- Map -->
-      <div class="section-card">
-        <div class="section-title">📍 ตำแหน่งสถานี</div>
-        <div id="map"></div>
-      </div>
-
-    </div><!-- /tab-realtime -->
-
-    <!-- ════ TAB 2: DAILY SUMMARY ════ -->
-    <div id="tab-daily" class="tab-content">
-      <div class="section-card">
-        <div class="section-title">📅 สรุปข้อมูลรายวัน</div>
-        <div class="controls-row">
-          <div class="date-wrap">
-            <span class="date-icon">📅</span>
-            <input type="date" id="daily-date" onchange="loadDailySummary()">
-          </div>
-          <button class="btn-primary" onclick="loadDailySummary()">โหลด</button>
-          <button class="btn-success" onclick="exportPDF()" id="btn-pdf" style="display:none">📄 PDF</button>
-          <button class="btn-outline" onclick="exportDailyCSV()" id="btn-export-daily" style="display:none">⬇️ CSV</button>
+        <div style="background:var(--bg-deep);border-radius:8px;height:8px;overflow:hidden">
+          <div id="rain-accum-bar" style="height:100%;background:linear-gradient(90deg,#0ea5e9,#38bdf8);border-radius:8px;transition:width .6s;width:0%"></div>
         </div>
-
-        <div id="rain-accum-wrap" style="display:none;margin:16px 0">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <span style="font-size:.8rem;color:var(--text-muted)">🌧️ ปริมาณฝนสะสมวันนี้ (ประมาณการ)</span>
-            <span id="rain-accum-mm" style="font-size:1rem;font-weight:700;font-family:'Space Grotesk',sans-serif">-- mm</span>
-          </div>
-          <div style="background:var(--bg-deep);border-radius:8px;height:8px;overflow:hidden">
-            <div id="rain-accum-bar" style="height:100%;background:linear-gradient(90deg,#0ea5e9,#38bdf8);border-radius:8px;transition:width .6s;width:0%"></div>
-          </div>
-          <div style="display:flex;justify-content:space-between;font-size:.65rem;color:var(--text-muted);margin-top:4px">
-            <span>เล็กน้อย &lt;5mm</span><span>ปานกลาง 5–20mm</span><span>หนัก &gt;20mm</span>
-          </div>
-        </div>
-
-        <div id="daily-loading" class="loading-msg" style="display:none">⏳ กำลังโหลดข้อมูล...</div>
-        <div id="daily-empty" class="empty-msg" style="display:none">📭 ไม่มีข้อมูลในวันที่เลือก</div>
-
-        <div id="daily-content" style="display:none">
-          <div class="summary-grid" id="daily-cards"></div>
-
-          <div class="section-card inner-box" style="margin-top:16px">
-            <div class="section-title">🌡️ อุณหภูมิและความชื้น</div>
-            <canvas id="daily-chart-th"></canvas>
-          </div>
-          <div class="section-card inner-box" style="margin-top:12px">
-            <div class="section-title">☀️ ความสว่าง</div>
-            <canvas id="daily-chart-uv"></canvas>
-          </div>
-          <div class="section-card inner-box" style="margin-top:12px">
-            <div class="section-title">🌧️ สัญญาณฝน</div>
-            <canvas id="daily-chart-rain"></canvas>
-          </div>
-
-          <div class="section-card inner-box" style="margin-top:12px">
-            <div class="section-title">📊 ตารางสถิติประจำวัน</div>
-            <div class="table-wrap">
-              <table class="stat-table">
-                <thead><tr><th>พารามิเตอร์</th><th>ต่ำสุด</th><th>เฉลี่ย</th><th>สูงสุด</th><th>หน่วย</th></tr></thead>
-                <tbody id="daily-table-body"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="section-card inner-box" style="margin-top:12px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-              <div class="section-title" style="margin:0">🕐 สรุปรายชั่วโมง</div>
-              <span class="table-note">ค่าเฉลี่ยต่อชั่วโมง</span>
-            </div>
-            <div class="table-wrap">
-              <table class="stat-table">
-                <thead><tr><th>ชั่วโมง</th><th>°C</th><th>%</th><th>lux</th><th>Rain</th><th>สภาพ</th></tr></thead>
-                <tbody id="hourly-table-body"></tbody>
-              </table>
-            </div>
-          </div>
+        <div style="display:flex;justify-content:space-between;font-size:.65rem;color:var(--text-muted);margin-top:4px">
+          <span>เล็กน้อย &lt;5mm</span><span>ปานกลาง 5–20mm</span><span>หนัก &gt;20mm</span>
         </div>
       </div>
-    </div><!-- /tab-daily -->
-
-    <!-- ════ TAB 3: COMPARE ════ -->
-    <div id="tab-compare" class="tab-content">
-      <div class="section-card">
-        <div class="section-title">🌍 เปรียบเทียบกับ OpenWeatherMap</div>
-        <div class="controls-row">
-          <div class="date-wrap">
-            <span class="date-icon">📅</span>
-            <input type="date" id="compare-date" onchange="loadCompare()">
-          </div>
-          <button class="btn-primary" onclick="loadCompare()">โหลด</button>
+      <div id="daily-loading" class="card-loading" style="display:none">⏳ กำลังโหลดข้อมูล...</div>
+      <div id="daily-empty" class="empty-msg" style="display:none">📭 ไม่มีข้อมูลในวันที่เลือก</div>
+      <div id="daily-content" style="display:none">
+        <div class="summary-grid" id="daily-cards"></div>
+        <div class="section-card inner-box" style="margin-top:14px"><div class="section-title">🌡️ อุณหภูมิและความชื้น</div><canvas id="daily-chart-th"></canvas></div>
+        <div class="section-card inner-box" style="margin-top:12px"><div class="section-title">☀️ ความสว่าง</div><canvas id="daily-chart-uv"></canvas></div>
+        <div class="section-card inner-box" style="margin-top:12px"><div class="section-title">🌧️ สัญญาณฝน</div><canvas id="daily-chart-rain"></canvas></div>
+        <div class="section-card inner-box" style="margin-top:12px">
+          <div class="section-title">📊 ตารางสถิติประจำวัน</div>
+          <div class="table-wrap"><table class="stat-table"><thead><tr><th>พารามิเตอร์</th><th>ต่ำสุด</th><th>เฉลี่ย</th><th>สูงสุด</th><th>หน่วย</th></tr></thead><tbody id="daily-table-body"></tbody></table></div>
         </div>
-
-        <div id="compare-loading" class="loading-msg" style="display:none">⏳ กำลังดึงข้อมูลจาก OpenWeatherMap...</div>
-        <div id="compare-empty" class="empty-msg" style="display:none">📭 ไม่มีข้อมูลในวันที่เลือก</div>
-
-        <div id="compare-content" style="display:none">
-          <div class="summary-grid" id="compare-cards"></div>
-          <div class="section-card inner-box" style="margin-top:16px">
-            <div class="section-title">🌡️ อุณหภูมิ: สถานี vs OWM</div>
-            <canvas id="compare-chart-temp"></canvas>
-          </div>
-          <div class="section-card inner-box" style="margin-top:12px">
-            <div class="section-title">💧 ความชื้น: สถานี vs OWM</div>
-            <canvas id="compare-chart-hum"></canvas>
-          </div>
-          <div class="section-card inner-box" style="margin-top:12px">
-            <div class="section-title">📋 ตารางเปรียบเทียบรายชั่วโมง</div>
-            <div class="table-wrap">
-              <table class="stat-table">
-                <thead><tr><th>เวลา</th><th>°C สถานี</th><th>°C OWM</th><th>ต่าง</th><th>%สถานี</th><th>%OWM</th><th>ต่าง</th></tr></thead>
-                <tbody id="compare-table-body"></tbody>
-              </table>
-            </div>
-          </div>
+        <div class="section-card inner-box" style="margin-top:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div class="section-title" style="margin:0">🕐 สรุปรายชั่วโมง</div><span style="font-size:.65rem;color:var(--text-muted)">ค่าเฉลี่ยต่อชั่วโมง</span></div>
+          <div class="table-wrap"><table class="stat-table"><thead><tr><th>ชั่วโมง</th><th>°C</th><th>%</th><th>lux</th><th>Rain</th><th>สภาพ</th></tr></thead><tbody id="hourly-table-body"></tbody></table></div>
         </div>
       </div>
-    </div><!-- /tab-compare -->
+    </div>
+  </div>
+</div>
 
-    <!-- ════ TAB 4: WEEKLY TREND ════ -->
-    <div id="tab-trend" class="tab-content">
-      <div class="section-card">
-        <div class="section-header">
-          <div class="section-title" style="margin:0">📈 Weekly Trend — 7 วันย้อนหลัง</div>
-          <button class="btn-outline" onclick="loadWeeklyTrend()">🔄 รีเฟรช</button>
-        </div>
-        <div id="trend-loading" class="loading-msg">⏳ กำลังโหลดข้อมูล 7 วัน...</div>
-        <div id="trend-content" style="display:none">
-          <div class="summary-grid" id="trend-cards" style="margin-bottom:16px"></div>
-          <div class="section-card inner-box" style="margin-bottom:12px">
-            <div class="section-title">🌡️ อุณหภูมิเฉลี่ยรายวัน (°C)</div>
-            <canvas id="trend-chart-temp"></canvas>
-          </div>
-          <div class="section-card inner-box" style="margin-bottom:12px">
-            <div class="section-title">💧 ความชื้นเฉลี่ยรายวัน (%)</div>
-            <canvas id="trend-chart-hum"></canvas>
-          </div>
-          <div class="section-card inner-box" style="margin-bottom:12px">
-            <div class="section-title">🌧️ ปริมาณฝนสะสมรายวัน (mm)</div>
-            <canvas id="trend-chart-rain"></canvas>
-          </div>
-          <div class="section-card inner-box">
-            <div class="section-title">🥵 Heat Index รายวัน (°C)</div>
-            <canvas id="trend-chart-hi"></canvas>
-          </div>
+<!-- ════ TAB 3: COMPARE ════ -->
+<div id="tab-compare" class="tab-content scroll-tab">
+  <div class="page-inner">
+    <div class="section-card">
+      <div class="section-title">🌍 เปรียบเทียบกับ OpenWeatherMap</div>
+      <div class="controls-row">
+        <div class="date-wrap"><span>📅</span><input type="date" id="compare-date" onchange="loadCompare()"></div>
+        <button class="btn-primary" onclick="loadCompare()">โหลด</button>
+      </div>
+      <div id="compare-loading" class="card-loading" style="display:none">⏳ กำลังดึงข้อมูล...</div>
+      <div id="compare-empty" class="empty-msg" style="display:none">📭 ไม่มีข้อมูลในวันที่เลือก</div>
+      <div id="compare-content" style="display:none">
+        <div class="summary-grid" id="compare-cards"></div>
+        <div class="section-card inner-box" style="margin-top:14px"><div class="section-title">🌡️ อุณหภูมิ: สถานี vs OWM</div><canvas id="compare-chart-temp"></canvas></div>
+        <div class="section-card inner-box" style="margin-top:12px"><div class="section-title">💧 ความชื้น: สถานี vs OWM</div><canvas id="compare-chart-hum"></canvas></div>
+        <div class="section-card inner-box" style="margin-top:12px">
+          <div class="section-title">📋 ตารางเปรียบเทียบรายชั่วโมง</div>
+          <div class="table-wrap"><table class="stat-table"><thead><tr><th>เวลา</th><th>°C สถานี</th><th>°C OWM</th><th>ต่าง</th><th>%สถานี</th><th>%OWM</th><th>ต่าง</th></tr></thead><tbody id="compare-table-body"></tbody></table></div>
         </div>
       </div>
-    </div><!-- /tab-trend -->
+    </div>
+  </div>
+</div>
 
-    <!-- ════ TAB 5: MONTHLY TREND ════ -->
-    <div id="tab-monthly" class="tab-content">
-      <div class="section-card">
-        <div class="section-header">
-          <div class="section-title" style="margin:0">📆 แนวโน้ม 30 วัน</div>
-          <button class="btn-primary" onclick="loadMonthlyTrend()">🔄 รีเฟรช</button>
-        </div>
-        <div id="monthly-loading" class="loading-msg">⏳ กำลังโหลดข้อมูล 30 วัน...</div>
-        <div id="monthly-content" style="display:none">
-          <div class="summary-grid" id="monthly-cards"></div>
-          <div class="chart-grid-2" style="margin-top:16px">
-            <div class="section-card"><div class="section-title">🌡️ อุณหภูมิเฉลี่ยรายวัน</div><canvas id="monthly-chart-temp"></canvas></div>
-            <div class="section-card"><div class="section-title">💧 ความชื้นเฉลี่ยรายวัน</div><canvas id="monthly-chart-hum"></canvas></div>
-            <div class="section-card"><div class="section-title">🌧️ ปริมาณฝนสะสมรายวัน</div><canvas id="monthly-chart-rain"></canvas></div>
-            <div class="section-card"><div class="section-title">🥵 Heat Index เฉลี่ยรายวัน</div><canvas id="monthly-chart-hi"></canvas></div>
-          </div>
+<!-- ════ TAB 4: WEEKLY ════ -->
+<div id="tab-trend" class="tab-content scroll-tab">
+  <div class="page-inner">
+    <div class="section-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div class="section-title" style="margin:0">📈 Weekly Trend — 7 วันย้อนหลัง</div>
+        <button class="btn-outline" onclick="loadWeeklyTrend()">🔄 รีเฟรช</button>
+      </div>
+      <div id="trend-loading" class="card-loading">⏳ กำลังโหลด 7 วัน...</div>
+      <div id="trend-content" style="display:none">
+        <div class="summary-grid" id="trend-cards" style="margin-bottom:14px"></div>
+        <div class="section-card inner-box" style="margin-bottom:12px"><div class="section-title">🌡️ อุณหภูมิเฉลี่ยรายวัน (°C)</div><canvas id="trend-chart-temp"></canvas></div>
+        <div class="section-card inner-box" style="margin-bottom:12px"><div class="section-title">💧 ความชื้นเฉลี่ยรายวัน (%)</div><canvas id="trend-chart-hum"></canvas></div>
+        <div class="section-card inner-box" style="margin-bottom:12px"><div class="section-title">🌧️ ปริมาณฝนสะสมรายวัน (mm)</div><canvas id="trend-chart-rain"></canvas></div>
+        <div class="section-card inner-box"><div class="section-title">🥵 Heat Index รายวัน (°C)</div><canvas id="trend-chart-hi"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ TAB 5: MONTHLY ════ -->
+<div id="tab-monthly" class="tab-content scroll-tab">
+  <div class="page-inner">
+    <div class="section-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div class="section-title" style="margin:0">📆 แนวโน้ม 30 วัน</div>
+        <button class="btn-primary" onclick="loadMonthlyTrend()">🔄 รีเฟรช</button>
+      </div>
+      <div id="monthly-loading" class="card-loading">⏳ กำลังโหลด 30 วัน...</div>
+      <div id="monthly-content" style="display:none">
+        <div class="summary-grid" id="monthly-cards"></div>
+        <div class="chart-grid-2" style="margin-top:14px">
+          <div class="section-card"><div class="section-title">🌡️ อุณหภูมิเฉลี่ยรายวัน</div><canvas id="monthly-chart-temp"></canvas></div>
+          <div class="section-card"><div class="section-title">💧 ความชื้นเฉลี่ยรายวัน</div><canvas id="monthly-chart-hum"></canvas></div>
+          <div class="section-card"><div class="section-title">🌧️ ปริมาณฝนสะสมรายวัน</div><canvas id="monthly-chart-rain"></canvas></div>
+          <div class="section-card"><div class="section-title">🥵 Heat Index เฉลี่ยรายวัน</div><canvas id="monthly-chart-hi"></canvas></div>
         </div>
       </div>
-    </div><!-- /tab-monthly -->
+    </div>
+  </div>
+</div>
 
-    <!-- ════ TAB 6: ALERT ════ -->
-    <div id="tab-alert" class="tab-content">
-
-      <div class="section-card" id="tg-setup-box">
-        <div class="section-title">✈️ ตั้งค่า Telegram</div>
-        <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:16px">ใส่ Chat ID เพื่อรับแจ้งเตือนบน Telegram ส่วนตัว</p>
-        <div class="tg-setup-row">
-          <div class="tg-id-wrap">
-            <span class="tg-id-icon">✈️</span>
-            <input type="text" id="input-tg-chatid" placeholder="เช่น 5058237954"
-              oninput="onChatIdInput()" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border-glow)'">
-            <div class="tg-id-status" id="tg-id-status"></div>
-          </div>
-          <button class="btn-primary" onclick="saveChatId()">💾 บันทึก</button>
-          <button class="btn-outline" onclick="showGuide('telegram')">📖 วิธีหา Chat ID</button>
+<!-- ════ TAB 6: ALERT ════ -->
+<div id="tab-alert" class="tab-content scroll-tab">
+  <div class="page-inner">
+    <div class="section-card" id="tg-setup-box">
+      <div class="section-title">✈️ ตั้งค่า Telegram</div>
+      <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:16px">ใส่ Chat ID เพื่อรับแจ้งเตือนบน Telegram ส่วนตัว</p>
+      <div class="tg-setup-row">
+        <div class="tg-id-wrap">
+          <span style="position:absolute;left:10px;font-size:.88rem">✈️</span>
+          <input type="text" id="input-tg-chatid" placeholder="เช่น 5058237954" oninput="onChatIdInput()" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border-glow)'">
+          <div style="position:absolute;right:10px;font-size:.78rem" id="tg-id-status"></div>
         </div>
-        <div id="tg-setup-hint" style="margin-top:10px;font-size:.78rem;color:#34d399;display:none">✓ บันทึกแล้ว — การแจ้งเตือนจะส่งมาที่ Telegram ของคุณ</div>
+        <button class="btn-primary" onclick="saveChatId()">💾 บันทึก</button>
+        <button class="btn-outline" onclick="showGuide('telegram')">📖 วิธีหา Chat ID</button>
       </div>
-
-      <div class="section-card">
-        <div class="section-title">🔔 แจ้งเตือนกิจกรรม</div>
-        <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:16px">เลือกกิจกรรมที่ต้องการ — ระบบแจ้งเตือน Telegram เมื่ออากาศเหมาะสม</p>
-        <div class="activity-grid" id="activity-grid">
-          <div class="activity-card" data-id="run" onclick="toggleActivity(this)">
-            <div class="activity-icon">🏃</div>
-            <div class="activity-name">วิ่ง/ออกกำลังกาย</div>
-            <div class="activity-cond">อุณหภูมิ &lt; 32°C<br>ไม่มีฝน</div>
-            <div class="activity-status" id="act-status-run">—</div>
-          </div>
-          <div class="activity-card" data-id="beach" onclick="toggleActivity(this)">
-            <div class="activity-icon">🏖️</div>
-            <div class="activity-name">ไปหาดทราย</div>
-            <div class="activity-cond">อุณหภูมิ 27–36°C<br>ไม่มีฝน + แสงดี</div>
-            <div class="activity-status" id="act-status-beach">—</div>
-          </div>
-          <div class="activity-card" data-id="bike" onclick="toggleActivity(this)">
-            <div class="activity-icon">🚴</div>
-            <div class="activity-name">ปั่นจักรยาน</div>
-            <div class="activity-cond">อุณหภูมิ &lt; 33°C<br>ไม่มีฝน</div>
-            <div class="activity-status" id="act-status-bike">—</div>
-          </div>
-          <div class="activity-card" data-id="chill" onclick="toggleActivity(this)">
-            <div class="activity-icon">☕</div>
-            <div class="activity-name">นั่งชิลนอกบ้าน</div>
-            <div class="activity-cond">อุณหภูมิ &lt; 30°C<br>ความชื้น &lt; 80%</div>
-            <div class="activity-status" id="act-status-chill">—</div>
-          </div>
-          <div class="activity-card" data-id="rain" onclick="toggleActivity(this)">
-            <div class="activity-icon">⛈️</div>
-            <div class="activity-name">แจ้งเตือนฝนมา</div>
-            <div class="activity-cond">ตรวจพบฝน<br>(rain raw &lt; 2000)</div>
-            <div class="activity-status" id="act-status-rain">—</div>
-          </div>
-          <div class="activity-card" data-id="golden" onclick="toggleActivity(this)">
-            <div class="activity-icon">🌅</div>
-            <div class="activity-name">แสงพระอาทิตย์สวย</div>
-            <div class="activity-cond">แสง 1,000–8,000 lux<br>ไม่มีฝน</div>
-            <div class="activity-status" id="act-status-golden">—</div>
-          </div>
-        </div>
-
-        <div class="activity-footer">
-          <div class="footer-row">
-            <span class="footer-label">⏱️ แจ้งเตือนซ้ำทุก</span>
-            <div class="preset-row">
-              <button class="preset-btn" data-target="alert-cooldown" data-val="15">15 นาที</button>
-              <button class="preset-btn active" data-target="alert-cooldown" data-val="30">30 นาที</button>
-              <button class="preset-btn" data-target="alert-cooldown" data-val="60">1 ชม.</button>
-              <button class="preset-btn" data-target="alert-cooldown" data-val="120">2 ชม.</button>
-              <button class="preset-btn" data-target="alert-cooldown" data-val="custom" id="cooldown-custom-btn">กำหนดเอง</button>
-            </div>
-            <div id="cooldown-custom-wrap" style="display:none;align-items:center;gap:6px">
-              <input type="number" id="cooldown-custom-input" min="1" max="1440" placeholder="นาที" oninput="applyCustomCooldown(this.value)">
-              <span style="font-size:.78rem;color:var(--text-muted)">นาที</span>
-            </div>
-            <input type="hidden" id="alert-cooldown" value="30">
-          </div>
-          <div class="footer-row" style="margin-top:12px">
-            <span class="footer-label">🔁 จำนวนครั้ง</span>
-            <div class="preset-row">
-              <button class="preset-btn" data-target="alert-repeat" data-val="1">1 ครั้ง</button>
-              <button class="preset-btn" data-target="alert-repeat" data-val="3">3 ครั้ง</button>
-              <button class="preset-btn" data-target="alert-repeat" data-val="5">5 ครั้ง</button>
-              <button class="preset-btn active" data-target="alert-repeat" data-val="0">ซ้ำตลอด</button>
-              <button class="preset-btn" data-target="alert-repeat" data-val="custom" id="repeat-custom-btn">กำหนดเอง</button>
-            </div>
-            <div id="repeat-custom-wrap" style="display:none;align-items:center;gap:6px">
-              <input type="number" id="repeat-custom-input" min="1" max="999" placeholder="ครั้ง" oninput="applyCustomRepeat(this.value)">
-              <span style="font-size:.78rem;color:var(--text-muted)">ครั้ง</span>
-            </div>
-            <input type="hidden" id="alert-repeat" value="0">
-          </div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center">
-            <button class="btn-primary" id="btn-save-alert" onclick="saveAlertSettings()">💾 บันทึกการตั้งค่า</button>
-            <button class="btn-outline" onclick="testTelegram()">📨 ทดสอบ Telegram</button>
-            <span id="alert-save-hint" style="font-size:.78rem;color:#34d399;display:none">✓ บันทึกแล้ว</span>
-          </div>
-        </div>
-        <div id="alert-result" style="display:none;margin-top:12px;padding:12px 16px;border-radius:10px;font-size:.88rem"></div>
+      <div id="tg-setup-hint" style="margin-top:10px;font-size:.78rem;color:#34d399;display:none">✓ บันทึกแล้ว</div>
+    </div>
+    <div class="section-card">
+      <div class="section-title">🔔 แจ้งเตือนกิจกรรม</div>
+      <div class="activity-grid" id="activity-grid">
+        <div class="activity-card" data-id="run" onclick="toggleActivity(this)"><div class="activity-icon">🏃</div><div class="activity-name">วิ่ง/ออกกำลังกาย</div><div class="activity-cond">อุณหภูมิ &lt; 32°C · ไม่มีฝน</div><div class="activity-status" id="act-status-run">—</div></div>
+        <div class="activity-card" data-id="beach" onclick="toggleActivity(this)"><div class="activity-icon">🏖️</div><div class="activity-name">ไปหาดทราย</div><div class="activity-cond">27–36°C · ไม่มีฝน + แสงดี</div><div class="activity-status" id="act-status-beach">—</div></div>
+        <div class="activity-card" data-id="bike" onclick="toggleActivity(this)"><div class="activity-icon">🚴</div><div class="activity-name">ปั่นจักรยาน</div><div class="activity-cond">อุณหภูมิ &lt; 33°C · ไม่มีฝน</div><div class="activity-status" id="act-status-bike">—</div></div>
+        <div class="activity-card" data-id="chill" onclick="toggleActivity(this)"><div class="activity-icon">☕</div><div class="activity-name">นั่งชิลนอกบ้าน</div><div class="activity-cond">&lt; 30°C · ความชื้น &lt; 80%</div><div class="activity-status" id="act-status-chill">—</div></div>
+        <div class="activity-card" data-id="rain" onclick="toggleActivity(this)"><div class="activity-icon">⛈️</div><div class="activity-name">แจ้งเตือนฝนมา</div><div class="activity-cond">ตรวจพบฝน (raw &lt; 2000)</div><div class="activity-status" id="act-status-rain">—</div></div>
+        <div class="activity-card" data-id="golden" onclick="toggleActivity(this)"><div class="activity-icon">🌅</div><div class="activity-name">แสงพระอาทิตย์สวย</div><div class="activity-cond">1,000–8,000 lux · ไม่มีฝน</div><div class="activity-status" id="act-status-golden">—</div></div>
       </div>
-
-      <div class="section-card">
-        <div class="section-title">📡 ช่องทางการแจ้งเตือน</div>
-        <div class="notify-channels">
-          <div class="notify-channel-card" id="ch-telegram">
-            <div class="ch-icon">✈️</div>
-            <div class="ch-info">
-              <div class="ch-name">Telegram Bot</div>
-              <div class="ch-desc">แจ้งเตือนผ่าน Bot อัตโนมัติ · เชื่อมต่ออยู่แล้ว</div>
-            </div>
-            <div class="ch-badge badge-ok">✓ ใช้งานอยู่</div>
-            <button class="btn-outline ch-guide-btn" onclick="showGuide('telegram')">📖 วิธีตั้งค่า</button>
+      <div class="activity-footer">
+        <div class="footer-row">
+          <span class="footer-label">⏱️ แจ้งเตือนซ้ำทุก</span>
+          <div class="preset-row">
+            <button class="preset-btn" data-target="alert-cooldown" data-val="15">15 นาที</button>
+            <button class="preset-btn active" data-target="alert-cooldown" data-val="30">30 นาที</button>
+            <button class="preset-btn" data-target="alert-cooldown" data-val="60">1 ชม.</button>
+            <button class="preset-btn" data-target="alert-cooldown" data-val="120">2 ชม.</button>
+            <button class="preset-btn" data-target="alert-cooldown" data-val="custom" id="cooldown-custom-btn">กำหนดเอง</button>
           </div>
+          <div id="cooldown-custom-wrap" style="display:none;align-items:center;gap:6px"><input type="number" id="cooldown-custom-input" min="1" max="1440" placeholder="นาที" oninput="applyCustomCooldown(this.value)"><span style="font-size:.78rem;color:var(--text-muted)">นาที</span></div>
+          <input type="hidden" id="alert-cooldown" value="30">
+        </div>
+        <div class="footer-row" style="margin-top:12px">
+          <span class="footer-label">🔁 จำนวนครั้ง</span>
+          <div class="preset-row">
+            <button class="preset-btn" data-target="alert-repeat" data-val="1">1 ครั้ง</button>
+            <button class="preset-btn" data-target="alert-repeat" data-val="3">3 ครั้ง</button>
+            <button class="preset-btn" data-target="alert-repeat" data-val="5">5 ครั้ง</button>
+            <button class="preset-btn active" data-target="alert-repeat" data-val="0">ซ้ำตลอด</button>
+            <button class="preset-btn" data-target="alert-repeat" data-val="custom" id="repeat-custom-btn">กำหนดเอง</button>
+          </div>
+          <div id="repeat-custom-wrap" style="display:none;align-items:center;gap:6px"><input type="number" id="repeat-custom-input" min="1" max="999" placeholder="ครั้ง" oninput="applyCustomRepeat(this.value)"><span style="font-size:.78rem;color:var(--text-muted)">ครั้ง</span></div>
+          <input type="hidden" id="alert-repeat" value="0">
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center">
+          <button class="btn-primary" id="btn-save-alert" onclick="saveAlertSettings()">💾 บันทึกการตั้งค่า</button>
+          <button class="btn-outline" onclick="testTelegram()">📨 ทดสอบ Telegram</button>
+          <span id="alert-save-hint" style="font-size:.78rem;color:#34d399;display:none">✓ บันทึกแล้ว</span>
         </div>
       </div>
-
-      <!-- Guide Modal -->
-      <div id="guide-modal-overlay" class="guide-overlay" onclick="closeGuide()" style="display:none">
-        <div class="guide-modal" onclick="event.stopPropagation()">
-          <button class="guide-close" onclick="closeGuide()">✕</button>
-          <div id="guide-modal-content"></div>
-        </div>
+      <div id="alert-result" style="display:none;margin-top:12px;padding:12px 16px;border-radius:10px;font-size:.88rem"></div>
+    </div>
+    <div class="section-card">
+      <div class="section-title">📡 ช่องทางการแจ้งเตือน</div>
+      <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,.3);border:1px solid var(--border-glow);border-radius:14px;padding:14px 16px" id="ch-telegram">
+        <span style="font-size:1.5rem">✈️</span>
+        <div style="flex:1"><div style="font-size:.86rem;font-weight:600">Telegram Bot</div><div style="font-size:.7rem;color:var(--text-muted);margin-top:2px">แจ้งเตือนผ่าน Bot อัตโนมัติ</div></div>
+        <span style="font-size:.66rem;font-weight:600;background:rgba(0,255,179,.1);color:var(--accent3);border:1px solid rgba(0,255,179,.2);border-radius:20px;padding:3px 10px">✓ ใช้งานอยู่</span>
+        <button class="btn-outline" style="font-size:.7rem;padding:5px 10px" onclick="showGuide('telegram')">📖 วิธีตั้งค่า</button>
       </div>
+    </div>
+    <div id="guide-modal-overlay" class="guide-overlay" onclick="closeGuide()" style="display:none">
+      <div class="guide-modal" onclick="event.stopPropagation()">
+        <button class="guide-close" onclick="closeGuide()">✕</button>
+        <div id="guide-modal-content"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
-    </div><!-- /tab-alert -->
+<!-- ══════ SCRIPTS ══════ -->
+<script src="app.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
 
-  </main>
+  /* Drawer */
+  const drawer        = document.getElementById('drawer');
+  const drawerOverlay = document.getElementById('drawer-overlay');
+  const menuToggle    = document.getElementById('menu-toggle');
 
-  <script src="app.js"></script>
-  <script>
-    /* ── Service Worker ── */
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
-    }
+  function toggleDrawer() {
+    const open = drawer.classList.toggle('open');
+    drawerOverlay.classList.toggle('open', open);
+    menuToggle.classList.toggle('open', open);
+  }
+  function closeDrawer() {
+    drawer.classList.remove('open');
+    drawerOverlay.classList.remove('open');
+    menuToggle.classList.remove('open');
+  }
+  function navTo(tab, btn) {
+    document.querySelectorAll('.drawer-item').forEach(el => el.classList.remove('active'));
+    btn.classList.add('active');
+    closeDrawer();
+    switchTab(tab, btn);
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
 
-    /* ── Drawer ── */
-    const drawer        = document.getElementById('drawer');
-    const drawerOverlay = document.getElementById('drawer-overlay');
-    const menuToggle    = document.getElementById('menu-toggle');
+  /* Gauge updater */
+  function updateGaugeArc(id, value, min, max) {
+    const arc = document.getElementById(id);
+    if (!arc) return;
+    const pct = Math.min(1, Math.max(0, (value - min) / (max - min)));
+    const fillLength = pct * (251.2 - 62.8);
+    arc.style.strokeDashoffset = 251.2 - fillLength;
+  }
 
-    function toggleDrawer() {
-      const open = drawer.classList.toggle('open');
-      drawerOverlay.classList.toggle('open', open);
-      menuToggle.classList.toggle('open', open);
-    }
-    function closeDrawer() {
-      drawer.classList.remove('open');
-      drawerOverlay.classList.remove('open');
-      menuToggle.classList.remove('open');
-    }
+  /* Rain bar updater */
+  function updateRainBar(raw) {
+    const bar = document.getElementById('rain-bar');
+    if (!bar) return;
+    // raw 4095=dry, 0=very wet; invert for display
+    const pct = Math.min(100, Math.max(0, Math.round((1 - raw / 4095) * 100)));
+    bar.style.width = pct + '%';
+  }
 
-    /* ── Nav (drawer → tabs) ── */
-    function navTo(tab, btn) {
-      // Update active drawer item
-      document.querySelectorAll('.drawer-item').forEach(el => el.classList.remove('active'));
-      btn.classList.add('active');
-      closeDrawer();
-      // Delegate to app.js switchTab
-      switchTab(tab, btn);
-    }
-
-    /* ── Gauge arc updater ── */
-    function updateGaugeArc(id, value, min, max) {
-      const arc = document.getElementById(id);
-      if (!arc) return;
-      const pct = Math.min(1, Math.max(0, (value - min) / (max - min)));
-      const circumference = 251.2;
-      const trackOffset = 62.8;
-      const fillLength = pct * (circumference - trackOffset);
-      arc.style.strokeDashoffset = circumference - fillLength;
-    }
-
-    /* ── MutationObserver: update gauge when val changes ── */
-    const gaugeObserver = new MutationObserver(() => {
-      const t = parseFloat(document.getElementById('val-temp')?.textContent);
-      const h = parseFloat(document.getElementById('val-hum')?.textContent);
-      const l = parseFloat(document.getElementById('val-lux')?.textContent);
-      if (!isNaN(t)) updateGaugeArc('gauge-temp-arc', t, 15, 45);
-      if (!isNaN(h)) updateGaugeArc('gauge-hum-arc', h, 0, 100);
-      if (!isNaN(l)) updateGaugeArc('gauge-lux-arc', l, 0, 100000);
-    });
-    ['val-temp','val-hum','val-lux'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) gaugeObserver.observe(el, { childList: true, subtree: true, characterData: true });
-    });
-
-    /* ── Keyboard ESC closes drawer ── */
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
-  </script>
+  /* MutationObserver: hook into app.js DOM updates */
+  const gaugeObs = new MutationObserver(() => {
+    const t = parseFloat(document.getElementById('val-temp')?.textContent);
+    const h = parseFloat(document.getElementById('val-hum')?.textContent);
+    const l = parseFloat(document.getElementById('val-lux')?.textContent);
+    const r = parseFloat(document.getElementById('val-rain')?.textContent);
+    if (!isNaN(t)) updateGaugeArc('gauge-temp-arc', t, 15, 45);
+    if (!isNaN(h)) updateGaugeArc('gauge-hum-arc', h, 0, 100);
+    if (!isNaN(l)) updateGaugeArc('gauge-lux-arc', l, 0, 100000);
+    if (!isNaN(r)) updateRainBar(r);
+  });
+  ['val-temp','val-hum','val-lux','val-rain'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) gaugeObs.observe(el, { childList: true, subtree: true, characterData: true });
+  });
+</script>
 </body>
 </html>
