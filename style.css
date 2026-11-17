@@ -1472,36 +1472,23 @@ body::before {
   margin-bottom: 0;
 }
 .pg-activities .activity-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
+  display: block;
+  padding: 12px 16px;
   text-align: left;
-  /* ให้แน่ใจว่า pointer events ทำงาน */
   pointer-events: auto;
   position: relative;
   z-index: 1;
 }
 .pg-activities .activity-icon {
-  font-size: 1.5rem;
-  margin-bottom: 0;
-  flex-shrink: 0;
-  width: 2rem;
-  text-align: center;
-}
-.pg-activities .activity-name { font-size: .75rem; font-weight: 600; }
-.pg-activities .activity-cond { font-size: .6rem; }
-.pg-activities .activity-card .activity-name,
-.pg-activities .activity-card .activity-cond,
-.pg-activities .activity-card .activity-status {
+  font-size: 1.6rem;
+  margin-bottom: 6px;
   display: block;
 }
+.pg-activities .activity-name { font-size: .78rem; font-weight: 600; display: block; margin-bottom: 3px; }
+.pg-activities .activity-cond { font-size: .62rem; display: block; margin-bottom: 4px; }
+.pg-activities .activity-card .activity-status { display: block; }
 .pg-activities .activity-text {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  display: block;
 }
 /* pending = กดแล้วรอบันทึก → border เหลือง */
 .pg-activities .activity-card.pending-select {
