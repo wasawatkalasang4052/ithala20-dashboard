@@ -1157,7 +1157,6 @@ function calcHeatIndex(T, RH) {
 // ══════════════════════════════════════════
 async function loadWeeklyTrend() {
   document.getElementById('trend-loading').style.display = 'block';
-  document.getElementById('trend-content').style.display = 'none';
 
   try {
     const since = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
@@ -1259,9 +1258,8 @@ async function loadWeeklyTrend() {
     });
 
     document.getElementById('trend-loading').style.display = 'none';
-    document.getElementById('trend-content').style.display = 'block';
 
-    // Force resize after content visible (canvas ใน hidden tab อาจยัง 0×0 ตอน create)
+    // Force resize after loading hidden (canvas ใน hidden tab อาจยัง 0×0 ตอน create)
     requestAnimationFrame(() => {
       ['trendTemp','trendHum','trendRain','trendHI'].forEach(k => {
         if (charts[k]) charts[k].resize();
@@ -1284,7 +1282,6 @@ let monthlyLoaded = false;
 async function loadMonthlyTrend() {
   if (monthlyLoaded) return; // โหลดครั้งเดียว ถ้าต้องการ refresh กดปุ่ม
   document.getElementById('monthly-loading').style.display = 'block';
-  document.getElementById('monthly-content').style.display = 'none';
 
   try {
     const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
@@ -1373,10 +1370,9 @@ async function loadMonthlyTrend() {
     });
 
     document.getElementById('monthly-loading').style.display = 'none';
-    document.getElementById('monthly-content').style.display = 'block';
     monthlyLoaded = true;
 
-    // Force resize after content visible
+    // Force resize after loading hidden
     requestAnimationFrame(() => {
       ['monthlyTemp','monthlyHum','monthlyRain','monthlyHI'].forEach(k => {
         if (charts[k]) charts[k].resize();
