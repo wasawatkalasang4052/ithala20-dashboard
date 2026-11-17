@@ -1503,6 +1503,24 @@ body::before {
   flex-direction: column;
   gap: 2px;
 }
+/* pending = กดแล้วรอบันทึก → border เหลือง */
+.pg-activities .activity-card.pending-select {
+  border-color: #f59e0b !important;
+  background: rgba(245,158,11,.08) !important;
+  box-shadow: 0 0 14px rgba(245,158,11,.18) !important;
+}
+/* selected = บันทึกแล้ว → border ฟ้า (เหมือนเดิม) */
+.pg-activities .activity-card.selected {
+  border-color: var(--accent) !important;
+  background: rgba(0,212,255,.07) !important;
+  box-shadow: 0 0 20px rgba(0,212,255,.12) !important;
+}
+/* selected + pending-select = กำลังจะยกเลิก → border แดง */
+.pg-activities .activity-card.selected.pending-select {
+  border-color: #f87171 !important;
+  background: rgba(248,113,113,.08) !important;
+  box-shadow: 0 0 14px rgba(248,113,113,.18) !important;
+}
 
 /* ════ RESPONSIVE — tablet (900px) ════ */
 @media (max-width: 900px) {
