@@ -1049,6 +1049,7 @@ function addAlertHistory(icon, name, desc, ok) {
   const empty = document.getElementById('alert-history-empty');
   if (empty) empty.style.display = 'none';
   if (wrap)  wrap.style.display  = '';
+  if (!tbody) return;
   const tr = document.createElement('tr');
   const now = new Date().toLocaleTimeString('th-TH', { timeZone:'Asia/Bangkok' });
   tr.innerHTML = `<td>${now}</td><td>${icon} ${name}</td><td>${desc}</td><td><span class="badge ${ok?'badge-ok':'badge-err'}">${ok?'ส่งแล้ว':'ส่งไม่ได้'}</span></td>`;
