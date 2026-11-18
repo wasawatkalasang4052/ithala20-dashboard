@@ -7,7 +7,7 @@ const SUPABASE_ANON = 'sb_publishable_wS5AkPa-ce-XY-YstP6DRw_wjr8TU1O';
 const STATION_ID    = 'ITHALA20-PHUKET-01';
 const STATION_LAT   = 8.020556;
 const STATION_LNG   = 98.330139;
-const REFRESH_MS    = 60 * 1000;
+const REFRESH_MS    = 55 * 1000; // 55 วิ เพื่อให้ไม่ข้าม cooldown 1 นาที
 
 // Telegram config
 const TG_TOKEN   = '9257791655:AAH5Z91aGHJzbznoJ-gieNHQgcahsRtxUt0';
@@ -1078,11 +1078,15 @@ async function checkAlerts(latest) {
     if (!alertSentCount[act.id]) alertSentCount[act.id] = 0;
     if (maxRepeat > 0 && alertSentCount[act.id] >= maxRepeat) continue;
 
-    // Check cooldown
-    if (!alertLastSent[act.id]) alertLastSent[act.id] = 0;
-    if (now - alertLastSent[act.id] < cooldownMs) continue;
+    // Check cooldown — ใช้ localStorage เพื่อให้ทน background/reload
+    const lsKey = `ithala20-alert-last-${act.id}`;
+    const lastSentStored = parseInt(localStorage.getItem(lsKey) || '0');
+    if (!alertLastSent[act.id]) alertLastSent[act.id] = lastSentStored;
+    const lastSent = Math.max(alertLastSent[act.id], lastSentStored);
+    if (now - lastSent < cooldownMs) continue;
 
     alertLastSent[act.id]  = now;
+    try { localStorage.setItem(lsKey, String(now)); } catch(e) {}
     alertSentCount[act.id] = (alertSentCount[act.id] || 0) + 1;
 
     const countNote = maxRepeat > 0 ? ` (${alertSentCount[act.id]}/${maxRepeat})` : '';
