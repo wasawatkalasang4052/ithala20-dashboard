@@ -1004,13 +1004,17 @@ function loadSavedChatId() {
 
 async function sendTelegram(msg) {
   const chatId = getEffectiveChatId();
-  try {
-    await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'HTML' })
-    });
-  } catch (e) { console.error('Telegram error:', e); }
+  const res = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'HTML' })
+  });
+  const data = await res.json();
+  if (!data.ok) {
+    const errDesc = data.description || 'Unknown error';
+    throw new Error(errDesc);
+  }
+  return data;
 }
 
 function showToast(msg, type = 'ok') {
@@ -1101,13 +1105,35 @@ async function checkAlerts(latest) {
   }
 }
 
+async function verifyBotToken() {
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/getMe`);
+    const data = await res.json();
+    return data.ok ? { ok: true, name: data.result.first_name, username: data.result.username } : { ok: false, err: data.description };
+  } catch(e) { return { ok: false, err: e.message }; }
+}
+
 async function testTelegram() {
   const r = document.getElementById('alert-result');
   r.style.display = 'block';
   r.style.background = 'rgba(56,189,248,.08)';
   r.style.border = '1px solid rgba(56,189,248,.2)';
   r.style.color  = '#38bdf8';
-  r.textContent  = '📨 กำลังส่งข้อความทดสอบ...';
+  r.textContent  = '🔍 กำลังตรวจสอบ Bot Token...';
+
+  // Step 1: verify token first
+  const botCheck = await verifyBotToken();
+  if (!botCheck.ok) {
+    r.style.background = 'rgba(248,113,113,.1)';
+    r.style.border = '1px solid rgba(248,113,113,.2)';
+    r.style.color  = '#f87171';
+    r.textContent  = `❌ Bot Token ไม่ถูกต้อง: ${botCheck.err}\n\nไปที่ @BotFather บน Telegram เพื่อสร้าง token ใหม่ แล้วแก้ TG_TOKEN ในไฟล์ app.js`;
+    return;
+  }
+
+  r.textContent = `✅ Bot พบแล้ว: @${botCheck.username}\n📨 กำลังส่งข้อความทดสอบ...`;
+
+  // Step 2: send test message
   try {
     await sendTelegram(
       `✅ <b>ITHALA20 ทดสอบการแจ้งเตือน</b>\n\n` +
@@ -1118,13 +1144,17 @@ async function testTelegram() {
     r.style.background = 'rgba(52,211,153,.1)';
     r.style.border = '1px solid rgba(52,211,153,.2)';
     r.style.color  = '#34d399';
-    r.textContent  = '✅ ส่งสำเร็จ! เช็ค Telegram ได้เลย';
+    r.textContent  = `✅ ส่งสำเร็จ! เช็ค Telegram ได้เลย (@${botCheck.username})`;
     addAlertHistory('🧪', 'ทดสอบ', '-', true);
   } catch (e) {
     r.style.background = 'rgba(248,113,113,.1)';
     r.style.border = '1px solid rgba(248,113,113,.2)';
     r.style.color  = '#f87171';
-    r.textContent  = '❌ ส่งไม่สำเร็จ: ' + e.message;
+    // Common errors guidance
+    let hint = '';
+    if (e.message.includes('chat not found')) hint = '\n\n💡 แก้ไข: พิมพ์อะไรก็ได้ไปหา Bot ก่อน แล้ว /start จากนั้นลองใหม่';
+    else if (e.message.includes('Forbidden')) hint = '\n\n💡 แก้ไข: Bot ถูก block — กด Unblock ใน Telegram แล้วลองใหม่';
+    r.textContent  = `❌ ส่งไม่สำเร็จ: ${e.message}${hint}`;
   }
 }
 
