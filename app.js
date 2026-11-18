@@ -118,6 +118,16 @@ function updateSaveButtonState() {
 }
 
 // ── Save all alert settings to localStorage ──
+function resetAlertCooldown() {
+  // ล้าง cooldown timestamp ทั้งหมดใน localStorage + memory
+  ACTIVITIES.forEach(act => {
+    alertLastSent[act.id] = 0;
+    alertSentCount[act.id] = 0;
+    try { localStorage.removeItem(`ithala20-alert-last-${act.id}`); } catch(e) {}
+  });
+  showToast('รีเซ็ต Cooldown แล้ว ✓ จะแจ้งเตือนรอบถัดไปทันที', 'ok');
+}
+
 function saveAlertSettings() {
   // Commit pending state:
   // • card has ONLY pending-select (not selected yet) → add selected
