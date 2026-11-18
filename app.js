@@ -1114,7 +1114,16 @@ async function verifyBotToken() {
 }
 
 async function testTelegram() {
-  const r = document.getElementById('alert-result');
+  let r = document.getElementById('alert-result');
+  if (!r) {
+    r = document.createElement('div');
+    r.id = 'alert-result';
+    r.style.cssText = 'margin-top:10px;padding:10px;border-radius:10px;font-size:.82rem';
+    const parent = document.getElementById('btn-test-telegram')?.parentElement
+      || document.getElementById('input-tg-chatid')?.parentElement
+      || document.body;
+    parent.appendChild(r);
+  }
   r.style.display = 'block';
   r.style.background = 'rgba(56,189,248,.08)';
   r.style.border = '1px solid rgba(56,189,248,.2)';
@@ -1479,9 +1488,9 @@ const GUIDES = {
       },
       {
         title: '2. เริ่ม Bot ของสถานี',
-        desc: 'ค้นหา <b>@ITHALA20Bot</b> แล้วกด <b>START</b> เพื่อให้ Bot สามารถส่งข้อความหาคุณได้',
-        link: 'https://t.me/ITHALA20Bot',
-        linkLabel: '→ เปิด @ITHALA20Bot',
+        desc: 'ค้นหา <b>@ithala20_alert_bot</b> แล้วกด <b>START</b> เพื่อให้ Bot สามารถส่งข้อความหาคุณได้',
+        link: 'https://t.me/ithala20_alert_bot',
+        linkLabel: '→ เปิด @ithala20_alert_bot',
         code: '/start'
       },
       {

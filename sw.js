@@ -1,4 +1,4 @@
-const CACHE = 'ithala20-v13';
+const CACHE = 'ithala20-v14';
 const STATIC = [
   '/style.css',
   '/app.js',
