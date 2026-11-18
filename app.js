@@ -7,7 +7,7 @@ const SUPABASE_ANON = 'sb_publishable_wS5AkPa-ce-XY-YstP6DRw_wjr8TU1O';
 const STATION_ID    = 'ITHALA20-PHUKET-01';
 const STATION_LAT   = 8.020556;
 const STATION_LNG   = 98.330139;
-const REFRESH_MS    = 55 * 1000; // 55 วิ เพื่อให้ไม่ข้าม cooldown 1 นาที
+const REFRESH_MS    = 30 * 1000; // 30 วิ ตรวจถี่ขึ้นให้ cooldown 1 นาทีทำงานได้แม่นยำ
 
 // Telegram config
 const TG_TOKEN   = '9257791655:AAH5Z91aGHJzbznoJ-gieNHQgcahsRtxUt0';
