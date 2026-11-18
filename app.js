@@ -11,7 +11,7 @@ const REFRESH_MS    = 60 * 1000;
 
 // Telegram config
 const TG_TOKEN   = '9257791655:AAH5Z91aGHJzbznoJ-gieNHQgcahsRtxUt0';
-const TG_CHAT_ID = '5058237954';
+const TG_CHAT_ID = '';
 
 // OpenWeatherMap API Key (free tier)
 const OWM_API_KEY = 'a67f0f80682e4273805ab2a052ae81c7';
